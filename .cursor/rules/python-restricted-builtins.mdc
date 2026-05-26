@@ -1,0 +1,87 @@
+---
+description: Valida llamadas a funciones permitidas antes de entregar código Python final
+globs: performance_evaluations/**/*.py
+alwaysApply: false
+---
+
+# Restricción de funciones (Python)
+
+Antes de considerar **terminada** cualquier versión final de un archivo `.py` en `performance_evaluations/`, valida el código contra esta política.
+
+## Prohibido
+
+- `print` (cualquier uso: llamada, import, alias)
+- `ValueError` (instanciar, `raise`, `except ValueError`, anotaciones u otras referencias al nombre)
+
+## Permitido (solo estas funciones como llamadas directas por nombre)
+
+`__build_class__`, `__import__`, `abs`, `any`, `bool`, `defaultdict`, `dict`, `float`, `id`, `int`, `isinstance`, `len`, `list`, `max`, `min`, `object`, `range`, `round`, `set`, `str`, `sum`, `tuple`
+
+Regla práctica: si el código hace `nombre(...)`, `nombre` debe estar en la lista anterior.
+
+- Llamadas con atributo (`obj.metodo()`, `modulo.func()`) no se evalúan con esta lista; sí deben cumplir las prohibiciones anteriores.
+- `import` / `from ... import` siguen permitidos vía `__import__` del runtime, pero no uses `print` ni `ValueError`.
+
+## Parámetros de tools (Pydantic vs dict en runtime)
+
+Las funciones de una tool se **definen** con parámetros tipados como modelos Pydantic (`BaseModel`), pero en **runtime** el payload llega como `dict` plano al invocar la tool.
+
+- Usa el modelo Pydantic solo en la **firma** y para documentar el contrato de entrada.
+- Dentro del cuerpo de la función, accede a los campos con **notación de dict**: `payload["propiedad"]`.
+- No uses acceso por atributo (`payload.propiedad`); en ejecución real no es un modelo Pydantic instanciado.
+
+```python
+class MiToolPayload(BaseModel):
+    assessment_id: int
+    file_url: str
+
+
+def tool(payload: MiToolPayload, metadata: dict | None = None) -> str:
+    # ❌
+    if not payload.assessment_id:
+        ...
+
+    # ✅
+    if not payload["assessment_id"]:
+        ...
+```
+
+## Checklist antes de entregar
+
+1. Ejecutar el validador (desde la raíz del repo):
+
+```bash
+python performance_evaluations/validate_restricted_builtins.py <ruta-al-archivo.py>
+```
+
+2. Corregir **todos** los hallazgos hasta salida con código `0`.
+3. Revisar manualmente que no queden `print` ni `ValueError` en strings/comentarios que se copien a código ejecutable.
+4. Solo entonces marcar el trabajo como versión final.
+
+## Sustitutos habituales
+
+| Evitar | Alternativa |
+|--------|-------------|
+| `print(x)` | Devolver `str(x)` / incluir en `json.dumps` / acumular en lista y retornar |
+| `raise ValueError("msg")` | `return json.dumps({"ok": False, "error": "msg"})` u otro contrato del `tool` |
+| `except ValueError` | `except Exception` o excepciones concretas del dominio (`HTTPError`, etc.) |
+
+## Ejemplos
+
+```python
+# ❌
+print("debug")
+raise ValueError("fila inválida")
+except ValueError as e:
+
+# ✅
+return json.dumps({"ok": False, "error": "fila inválida"}, ensure_ascii=False)
+except Exception as e:
+```
+
+```python
+# ✅ llamadas directas permitidas
+filas = list(reader)
+total = len(filas)
+etiqueta = str(assessment_id)
+```

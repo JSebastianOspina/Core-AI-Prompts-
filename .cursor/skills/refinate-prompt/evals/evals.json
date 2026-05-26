@@ -1,0 +1,122 @@
+{
+  "skill_name": "refinate-prompt",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Aquí está el prompt de mi agente de soporte al cliente:\n\n---\nEres un agente de soporte de la empresa TechCorp. Tu rol es ayudar a los usuarios a resolver problemas técnicos con nuestros productos. Siempre sé amable y profesional. Si no sabes la respuesta, escala el ticket al equipo de soporte avanzado.\n---\n\nEl problema que observé: en una conversación de prueba, un cliente escribió en español y el agente respondió en inglés, lo que causó confusión. Quiero que el agente detecte el idioma en que escribe el usuario y responda siempre en ese mismo idioma.",
+      "expected_output": "Un PROMPT FINAL que incorpora la detección de idioma sin tocar el resto del prompt, más una sección CAMBIOS REALIZADOS que explica exactamente qué se añadió y dónde.",
+      "assertions": [
+        {
+          "name": "contiene-seccion-prompt-final",
+          "description": "La respuesta incluye la sección 'PROMPT FINAL' con el prompt completo",
+          "type": "contains",
+          "value": "PROMPT FINAL"
+        },
+        {
+          "name": "contiene-seccion-cambios",
+          "description": "La respuesta incluye la sección 'CAMBIOS REALIZADOS'",
+          "type": "contains",
+          "value": "CAMBIOS REALIZADOS"
+        },
+        {
+          "name": "incorpora-deteccion-idioma",
+          "description": "El PROMPT FINAL menciona detectar o responder en el idioma del usuario",
+          "type": "contains_one_of",
+          "value": ["idioma", "language", "español", "lengua"]
+        },
+        {
+          "name": "preserva-regla-escalamiento",
+          "description": "El PROMPT FINAL preserva la instrucción de escalar tickets al soporte avanzado",
+          "type": "contains",
+          "value": "escala"
+        },
+        {
+          "name": "no-reescritura-completa",
+          "description": "Los cambios realizados son quirúrgicos, no una reescritura total — CAMBIOS REALIZADOS explica qué se preservó",
+          "type": "qualitative"
+        }
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Este es el prompt actual de mi agente de ventas:\n\n---\nEres un agente de ventas de MueblesCasa. Tu objetivo es ayudar a los clientes a encontrar los productos que mejor se adaptan a sus necesidades y presupuesto. Puedes ofrecer descuentos cuando el cliente los solicite, siempre que estén dentro del rango aprobado (máximo 15%). Recuerda siempre mencionar las opciones de financiamiento disponibles.\n---\n\nNuevo requerimiento: el equipo comercial detectó que muchos clientes piden descuento sin una razón válida y luego no compran. A partir de ahora, antes de ofrecer cualquier descuento, el agente debe preguntar el motivo de la solicitud.",
+      "expected_output": "Un PROMPT FINAL que modifica quirúrgicamente la regla de descuentos para añadir el paso previo de preguntar el motivo, sin eliminar el límite del 15% ni otras instrucciones existentes.",
+      "assertions": [
+        {
+          "name": "contiene-seccion-prompt-final",
+          "description": "La respuesta incluye la sección 'PROMPT FINAL'",
+          "type": "contains",
+          "value": "PROMPT FINAL"
+        },
+        {
+          "name": "contiene-seccion-cambios",
+          "description": "La respuesta incluye la sección 'CAMBIOS REALIZADOS'",
+          "type": "contains",
+          "value": "CAMBIOS REALIZADOS"
+        },
+        {
+          "name": "preserva-limite-15",
+          "description": "El PROMPT FINAL preserva el límite del 15% de descuento",
+          "type": "contains",
+          "value": "15%"
+        },
+        {
+          "name": "incorpora-pregunta-motivo",
+          "description": "El PROMPT FINAL incluye la instrucción de preguntar el motivo antes de dar descuento",
+          "type": "contains_one_of",
+          "value": ["motivo", "razón", "razón", "antes de ofrecer", "antes de dar"]
+        },
+        {
+          "name": "preserva-financiamiento",
+          "description": "El PROMPT FINAL conserva la instrucción sobre opciones de financiamiento",
+          "type": "contains",
+          "value": "financiamiento"
+        }
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Tengo este prompt para mi agente de clasificación de tickets de soporte:\n\n---\nEres un agente de clasificación de tickets de soporte técnico. Clasifica cada ticket en una de estas categorías: Bug, Mejora, Pregunta, o Urgente. Los tickets marcados como Urgente deben notificarse inmediatamente al equipo de guardia. Todo ticket con la palabra 'caído' o 'no funciona' debe clasificarse automáticamente como Urgente. Los tickets de tipo Bug deben asignarse al equipo de ingeniería. Los tickets de tipo Mejora deben asignarse al equipo de producto.\n---\n\nProblema observado en esta conversación de prueba:\nUsuario: 'El dashboard de reportes no funciona bien en mobile, sería bueno mejorarlo'\nAgente: Clasificó como Urgente porque detectó 'no funciona'\n\nNuevo requerimiento: la palabra 'no funciona' solo debe disparar Urgente si se refiere a una funcionalidad completamente caída, no a comportamiento degradado o mejoras de UX.",
+      "expected_output": "Un PROMPT FINAL que añade la distinción entre funcionalidad caída vs. degradada/UX, sin eliminar las otras reglas de clasificación. La sección CAMBIOS REALIZADOS debe mencionar el fallo específico detectado en la conversación de prueba y cómo se resuelve.",
+      "assertions": [
+        {
+          "name": "contiene-seccion-prompt-final",
+          "description": "La respuesta incluye la sección 'PROMPT FINAL'",
+          "type": "contains",
+          "value": "PROMPT FINAL"
+        },
+        {
+          "name": "contiene-seccion-cambios",
+          "description": "La respuesta incluye la sección 'CAMBIOS REALIZADOS'",
+          "type": "contains",
+          "value": "CAMBIOS REALIZADOS"
+        },
+        {
+          "name": "preserva-categorias-originales",
+          "description": "El PROMPT FINAL conserva las cuatro categorías: Bug, Mejora, Pregunta, Urgente",
+          "type": "contains_all_of",
+          "value": ["Bug", "Mejora", "Pregunta", "Urgente"]
+        },
+        {
+          "name": "preserva-notificacion-guardia",
+          "description": "El PROMPT FINAL mantiene la regla de notificar al equipo de guardia en casos Urgentes",
+          "type": "contains",
+          "value": "guardia"
+        },
+        {
+          "name": "distingue-caida-vs-degradado",
+          "description": "El PROMPT FINAL añade lógica que diferencia funcionalidad caída de comportamiento degradado o mejoras",
+          "type": "qualitative"
+        },
+        {
+          "name": "cambios-menciona-fallo-especifico",
+          "description": "La sección CAMBIOS REALIZADOS hace referencia al fallo observado en la conversación de prueba",
+          "type": "qualitative"
+        }
+      ],
+      "files": []
+    }
+  ]
+}
