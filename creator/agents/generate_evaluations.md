@@ -118,7 +118,9 @@ Pregunta al usuario la dificultad de las preguntas:
 
 Delega al **subagente de recomendación de tipos de preguntas**, enviándole:
 
-- El texto de conocimiento (todo el contenido fuente validado)
+- El contenido fuente, siguiendo la misma regla de origen que en el Paso 4:
+  - **Si el usuario adjuntó un archivo:** envía la **URL pública** del archivo. No incluyas el contenido del documento. El subagente ejecutará la tool correspondiente para obtenerlo.
+  - **Si el usuario pegó texto libre:** envía el **texto acumulado** (incluyendo cualquier complemento aportado durante la validación) como string.
 - La dificultad seleccionada
 - La cantidad de preguntas
 
@@ -139,11 +141,14 @@ El subagente retorna los tipos de preguntas más adecuados. Preséntale la propu
 
 Delega al **subagente de generación de preguntas**, enviándole:
 
-- Todo el contexto de la evaluación (parámetros configurados)
+- El `questionnaire_id` del cuestionario ya creado en Creator (obtenido al crear el questionnaire con `config_evaluacion`).
+- Todo el contexto de la evaluación (`config_evaluacion`).
 - Los tipos de preguntas aprobados
 - La dificultad
 - La cantidad de preguntas
-- El contenido fuente completo
+- El contenido fuente, siguiendo la misma regla de origen que en el Paso 4:
+  - **Si el usuario adjuntó un archivo:** envía la **URL pública** del archivo. No incluyas el contenido del documento. El subagente ejecutará la tool correspondiente para obtenerlo.
+  - **Si el usuario pegó texto libre:** envía el **texto acumulado** (incluyendo cualquier complemento aportado durante la validación) como string.
 
 Este subagente genera las preguntas y las guarda directamente en la plataforma Creator.
 
@@ -213,7 +218,8 @@ Los siguientes campos forman el objeto `config_evaluacion` que se envía al suba
 | Generación de preguntas                 | `tipos_preguntas`     | array\<string\> | sí        | Lista de tipos de preguntas aprobados por el usuario                                            | Resultado confirmado del subagente de recomendación                                             | `["multiple_choice_single_answer", "binary"]` |
 | Generación de preguntas                 | `dificultad`          | string          | sí        | Nivel de dificultad                                                                              | Definido en el Paso 6                                                                           | `"avanzada"`                         |
 | Generación de preguntas                 | `cantidad_preguntas`  | number          | sí        | Número de preguntas a generar                                                                   | Definido en el Paso 5                                                                           | `10`                                 |
-| Generación de preguntas                 | `config_evaluacion`   | object          | sí        | Objeto con todos los parámetros de configuración de la evaluación                               | Construido al completar el Paso 2                                                               | `{ "title": "Evaluación bioquímica", "enable_scoring": true, "min_scoring_approve": 70, "enable_time_limited": true, "time_limit": true, "time_limit_value": 30, "enable_attempts": false, "questions_random_order": false, "answers_random_order": false }` |
+| Generación de preguntas                 | `config_evaluacion`   | object          | sí        | Objeto con todos los parámetros de configuración de la evaluación (contexto)                    | Construido al completar el Paso 2                                                               | `{ "title": "Evaluación bioquímica", "enable_scoring": true, "min_scoring_approve": 70, "enable_time_limited": true, "time_limit": true, "time_limit_value": 30, "enable_attempts": false, "questions_random_order": false, "answers_random_order": false }` |
+| Generación de preguntas                 | `questionnaire_id`    | number          | sí        | ID del questionnaire ya creado en Creator donde se publicarán las preguntas                     | Devuelto por la API/tool de creación del questionnaire ejecutada con `config_evaluacion`        | `482`                                |
 
 *`file_url` y `texto` son mutuamente excluyentes: se envía uno u otro, nunca ambos al mismo tiempo (salvo `texto_complemento` cuando el original es un archivo).
 
@@ -227,7 +233,6 @@ El subagente de recomendación puede sugerir cualquiera de los siguientes tipos.
 |-------------------------------------|----------------------------------------------------------|
 | `multiple_choice_single_answer`     | Selección múltiple — una sola respuesta correcta         |
 | `multiple_choice_multiple_answers`  | Selección múltiple — varias respuestas correctas         |
-| `numerical_scale`                   | Escala numérica                                          |
 | `open_text`                         | Texto abierto                                            |
 | `binary`                            | Binaria (Sí/No, Verdadero/Falso, etc.)                  |
 | `closed_text`                       | Texto cerrado (respuesta corta)                          |

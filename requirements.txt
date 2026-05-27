@@ -1,2 +1,4 @@
 requests>=2.31.0
 pydantic[email]==2.12.3
+markitdown[pptx,docx,xlsx,xls,pdf]==0.1.6
+
