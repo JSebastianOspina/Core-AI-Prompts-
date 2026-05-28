@@ -6,10 +6,13 @@ Esta tool descarga un archivo desde una URL pública y devuelve su contenido con
 
 * **file_url (str)**: URL pública (http/https) del archivo a descargar y convertir a Markdown. Obtener del chat; si falta, preguntar: URL del archivo a convertir.
 
+* **should_validate (bool)**: Si es `true`, la tool valida el archivo antes de convertirlo. Si es `false`, omite esa validación. Opcional; por defecto `true`. Obtener del chat cuando el agente deba forzar u omitir la validación; si no aplica, usar el valor por defecto.
+
 ## payload (ejemplo)
 
 ```json
 {
-  "file_url": "<url_https>"
+  "file_url": "<url_https>",
+  "should_validate": true
 }
 ```

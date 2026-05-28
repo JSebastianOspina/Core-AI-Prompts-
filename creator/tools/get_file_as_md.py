@@ -1,7 +1,7 @@
 import json
 
 import requests
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from markitdown import MarkItDown
 
 MAX_FILE_SIZE_MB = 25
@@ -21,13 +21,8 @@ class GetFileAsMdPayload(BaseModel):
     - file_url: URL pública (http/https) del archivo que se descargará y convertirá a Markdown.
     """
 
-    file_url: str = Field(
-        description="URL pública (http/https) del archivo a descargar y convertir a Markdown."
-    )
-    should_validate: bool = Field(
-        description="Si es True, se validará el archivo antes de convertirlo a Markdown.",
-        default=True,
-    )
+    file_url: str
+    should_validate: bool = True
 
 
 def _validate_file(response: requests.Response) -> str | None:
