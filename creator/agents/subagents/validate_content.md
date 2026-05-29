@@ -30,8 +30,8 @@ Puedes recibir uno de estos payloads:
 Reglas:
 
 - `texto`: analiza directamente el contenido recibido.
-- `file_url`: usa la tool `get_file_as_md` para leer el archivo. La tool recibe la URL como string. Luego valida el contenido extraído. Si `get_file_as_md` falla o no devuelve texto útil, marca el contenido como insuficiente.
-- `file_url` + `texto_complemento`: usa `get_file_as_md` con la URL como string y evalúa el contenido extraído junto con el complemento.
+- `file_url`: usa la tool `get_file_as_md` con el payload `{ "file_url": "<url>", "should_validate": false }` para leer el archivo. Luego valida el contenido extraído. Si `get_file_as_md` falla o no devuelve texto útil, marca el contenido como insuficiente.
+- `file_url` + `texto_complemento`: usa `get_file_as_md` con el payload `{ "file_url": "<url>", "should_validate": false }` y evalúa el contenido extraído junto con el complemento.
 - Si no recibes material evaluable, marca insuficiente.
 - No uses conocimiento externo para completar vacíos del contenido.
 

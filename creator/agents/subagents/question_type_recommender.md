@@ -31,7 +31,6 @@ Solo puedes recomendar tipos de esta lista. Usa el valor exacto de la columna Ti
 | `closed_text`                       | ✅✅  | ✅         | ❌       |
 | `matching`                          | ✅    | ✅✅       | ✅       |
 | `multiple_choice_multiple_answers`  | ❌    | ✅✅       | ✅✅     |
-| `open_text`                         | ❌    | ✅         | ✅✅     |
 | `essay`                             | ❌    | ❌         | ✅✅     |
 
 ✅✅ = muy recomendado · ✅ = adecuado · ❌ = no recomendado
@@ -47,10 +46,10 @@ Identifica la naturaleza predominante del texto (puede ser más de una):
 | Naturaleza       | Señales en el texto                               | Tipos que favorece                                                         |
 |------------------|---------------------------------------------------|----------------------------------------------------------------------------|
 | Declarativa      | Hechos, definiciones, fechas, listas de conceptos | `binary`, `multiple_choice_single_answer`, `closed_text`                   |
-| Conceptual       | Causas y efectos, principios, teorías             | `multiple_choice_single_answer`, `multiple_choice_multiple_answers`, `open_text` |
+| Conceptual       | Causas y efectos, principios, teorías             | `multiple_choice_single_answer`, `multiple_choice_multiple_answers`        |
 | Procedimental    | Pasos, flujos, metodologías                       | `multiple_choice_single_answer`, `matching`, `closed_text`                 |
 | Relacional       | Comparaciones, clasificaciones, taxonomías        | `matching`, `multiple_choice_multiple_answers`                             |
-| Evaluativa       | Argumentación, síntesis, análisis crítico         | `essay`, `open_text`                                                       |
+| Evaluativa       | Argumentación, síntesis, análisis crítico         | `essay`, `multiple_choice_multiple_answers`                                |
 
 ---
 

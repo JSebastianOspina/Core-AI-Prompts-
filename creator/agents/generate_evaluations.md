@@ -233,7 +233,6 @@ El subagente de recomendación puede sugerir cualquiera de los siguientes tipos.
 |-------------------------------------|----------------------------------------------------------|
 | `multiple_choice_single_answer`     | Selección múltiple — una sola respuesta correcta         |
 | `multiple_choice_multiple_answers`  | Selección múltiple — varias respuestas correctas         |
-| `open_text`                         | Texto abierto                                            |
 | `binary`                            | Binaria (Sí/No, Verdadero/Falso, etc.)                  |
 | `closed_text`                       | Texto cerrado (respuesta corta)                          |
 | `matching`                          | Emparejamiento                                           |
