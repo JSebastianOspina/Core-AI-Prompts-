@@ -8,7 +8,7 @@ Esta tool crea, una a una, todas las preguntas de un questionnaire haciendo un P
 
 * **questions (list[dict])**: Lista de preguntas a crear, en el formato plano producido por el subagente de generación. Cada item se envía al endpoint correspondiente a su `type`. Obtener del subagente de generación de preguntas.
 
-* **questions[].type (str)**: Identificador del tipo de pregunta. Valores soportados: `multiple_choice_single_answer`, `multiple_choice_multiple_answers`, `binary`, `closed_text`, `open_text`, `matching`, `essay`. Obtener del subagente.
+* **questions[].type (str)**: Identificador del tipo de pregunta. Valores soportados: `multiple_choice_single_answer`, `multiple_choice_multiple_answers`, `binary`, `closed_text`, `matching`, `essay`. Obtener del subagente.
 
 * **questions[].statement (str)**: Enunciado de la pregunta. Obtener del subagente.
 
@@ -49,10 +49,6 @@ Esta tool crea, una a una, todas las preguntas de un questionnaire haciendo un P
       "statement": "<str>",
       "correct_statement": "<str>",
       "accuracy": "exact"
-    },
-    {
-      "type": "open_text",
-      "statement": "<str>"
     },
     {
       "type": "matching",

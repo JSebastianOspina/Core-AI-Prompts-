@@ -7,13 +7,12 @@ from pydantic import BaseModel, Field
 BASE_URL = "https://pub-apps.ubitslearning.com/api/questionnaire/v1"
 
 ENDPOINTS = {
-    "multiple_choice_single_answer": "options",
-    "multiple_choice_multiple_answers": "options",
-    "binary": "binary",
+    "multiple_choice_single_answer": None,
+    "multiple_choice_multiple_answers": None,
+    "binary": None,
     "matching": "matching",
     "essay": "essay",
     "closed_text": "closed-text",
-    "open_text": "open-text",
 }
 
 
@@ -116,9 +115,6 @@ def _build_jsonapi_body(question: dict) -> dict | None:
             "data": {"number_words_needed": question["number_words_needed"]}
         }
 
-    elif q_type == "open_text":
-        pass
-
     else:
         return None
 
@@ -154,11 +150,11 @@ def tool(payload: CreateQuestionsPayload, metadata: dict | None = None) -> str:
     success_count = 0
     failure_count = 0
 
-    for index, question in enumerate(questions):
+    for index in range(len(questions)):
+        question = questions[index]
         q_type = question.get("type")
-        suffix = ENDPOINTS.get(q_type)
 
-        if suffix is None:
+        if q_type not in ENDPOINTS:
             failure_count += 1
             results.append(
                 {
@@ -170,8 +166,11 @@ def tool(payload: CreateQuestionsPayload, metadata: dict | None = None) -> str:
             )
             continue
 
+        suffix = ENDPOINTS[q_type]
+
         # questionnaire_id es path parameter: solo construye la URL y no va en el body.
-        url = f"{BASE_URL}/questionnaires/{questionnaire_id}/questions/{suffix}"
+        base = f"{BASE_URL}/questionnaires/{questionnaire_id}/questions"
+        url = base if suffix is None else f"{base}/{suffix}"
 
         body_payload = _build_jsonapi_body(question)
         if body_payload is None:
