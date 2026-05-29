@@ -178,18 +178,19 @@ Ejemplo:
 
 ### `essay`
 Campos adicionales:
-- `number_words_needed` (number): mínimo de palabras esperadas (entero ≥ 1).
+- `number_words_needed` (number): mínimo de palabras esperadas (entero entre 1 y 100 inclusive). **No puede ser mayor a 100.**
 
 Reglas:
 - Pregunta de desarrollo largo.
 - Solo permitido si la `dificultad` recibida es `"avanzada"`.
+- Ajusta `number_words_needed` según la profundidad exigida, pero nunca superes 100.
 
 Ejemplo:
 ```json
 {
   "type": "essay",
   "statement": "Analiza críticamente el impacto de la glucólisis en organismos anaerobios.",
-  "number_words_needed": 200
+  "number_words_needed": 80
 }
 ```
 
@@ -220,6 +221,7 @@ Ejemplo:
    - Conteo total = `cantidad_preguntas`.
    - Conteo por tipo coincide con la distribución.
    - Cada pregunta cumple su estructura de tipo.
+   - En preguntas `essay`, `number_words_needed` está entre 1 y 100 (inclusive).
    - Sin duplicados ni pistas cruzadas.
 6. Llamar a la tool `creator-post-exam-questions` **una sola vez** con el payload completo (Sección 7).
 7. Interpretar el resultado de la tool y retornarlo al agente principal (Sección 8).
@@ -254,7 +256,7 @@ La tool recibe un único argumento `payload` (dict) con las llaves `questionnair
 | `creator-post-exam-questions`| `payload.questions[].matching_options` | array\<object\> \| null | no* | Pares `{ "term": string, "match": string }` para `matching`                 | Redacción según Sección 4                           | ver 7.3 |
 | `creator-post-exam-questions`| `payload.questions[].correct_statement` | string \| null | no* | Respuesta correcta para `closed_text`                                       | Redacción según Sección 4                           | `"Bogotá"` |
 | `creator-post-exam-questions`| `payload.questions[].accuracy` | string \| null | no* | Modo de comparación para `closed_text`: `"exact"` o `"approximate"`         | Redacción según Sección 4                           | `"exact"` |
-| `creator-post-exam-questions`| `payload.questions[].number_words_needed` | int \| null | no* | Mínimo de palabras para `essay`                                             | Redacción según Sección 4                           | `200` |
+| `creator-post-exam-questions`| `payload.questions[].number_words_needed` | int \| null | no* | Mínimo de palabras para `essay` (1–100; no mayor a 100)                     | Redacción según Sección 4                           | `80` |
 
 \* Obligatorio según el `type` de cada pregunta (ver Sección 4 y tabla 7.2).
 
@@ -269,7 +271,7 @@ Cada pregunta es un objeto **plano** con `type` + `statement` + únicamente los 
 | `binary`                            | `options[{statement, is_correct}]` (2 ítems: V/F o Sí/No)       |
 | `closed_text`                       | `correct_statement`, `accuracy` (`"exact"` o `"approximate"`)   |
 | `matching`                          | `matching_options[{term, match}]` (3–6 pares)                   |
-| `essay`                             | `number_words_needed` (entero ≥ 1)                              |
+| `essay`                             | `number_words_needed` (entero 1–100; no mayor a 100)            |
 
 ### 7.3 Ejemplo de invocación
 

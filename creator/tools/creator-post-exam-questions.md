@@ -20,7 +20,7 @@ Esta tool crea, una a una, todas las preguntas de un questionnaire haciendo un P
 
 * **questions[].accuracy (str | None)**: Modo de comparación para `closed_text`. Valores: `"exact"` o `"approximate"`. Obtener del subagente.
 
-* **questions[].number_words_needed (int | None)**: Mínimo de palabras esperadas para `essay`. Obtener del subagente.
+* **questions[].number_words_needed (int | None)**: Mínimo de palabras esperadas para `essay`. Entero entre 1 y 100 inclusive; **no puede ser mayor a 100**. Obtener del subagente.
 
 ## payload (ejemplo)
 
@@ -60,7 +60,7 @@ Esta tool crea, una a una, todas las preguntas de un questionnaire haciendo un P
     {
       "type": "essay",
       "statement": "<str>",
-      "number_words_needed": "<int>"
+      "number_words_needed": 80
     }
   ]
 }
