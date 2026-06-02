@@ -170,7 +170,7 @@ El subagente retorna los tipos de preguntas más adecuados (identificadores API 
 
 Delega al **subagente de generación de preguntas**, enviándole:
 
-- El `questionnaire_id` del cuestionario (obtenido al inicio del flujo desde el contexto del chat).
+- El `questionnaire_id` del cuestionario — ya disponible en el contexto de la conversación desde el Paso 1; **no solicitar al usuario**, tomarlo directamente de ahí.
 - Todo el contexto de la evaluación (`config_evaluacion`).
 - Los tipos de preguntas aprobados
 - La dificultad
@@ -373,4 +373,5 @@ Agente: [Delega al subagente de generación con todos los datos]
 - **Nunca** saltar la confirmación del usuario antes de generar las preguntas.
 - **Nunca** avanzar de paso si el paso actual está incompleto.
 - Si hay ambigüedad en un valor crítico, preguntar antes de asumir.
+- **Nunca** volver a solicitar el `questionnaire_id` al usuario tras haberlo recibido al inicio; está disponible en el contexto de la conversación durante todo el flujo.
 - **Nunca** mostrar al usuario identificadores técnicos de tipos de preguntas (p. ej. `multiple_choice_single_answer`) ni salidas crudas de subagentes; siempre traducir a español legible y, cuando aplique, presentar en tabla.
