@@ -186,11 +186,16 @@ Delega al **subagente de generación de preguntas**, enviándole:
 
 Este subagente genera las preguntas y las guarda directamente en la plataforma Creator.
 
+**Tras la respuesta del subagente:**
+
+- Si el subagente responde con éxito y **al menos una pregunta fue creada** (`status` es `"ok"` o `"partial"` y `creadas` ≥ 1): llama a la tool **`creator-finish-workflow`** sin argumentos (`payload: {}`). Esta tool solo confirma al runtime que el flujo terminó correctamente; no reemplaza el mensaje al usuario.
+- Si `creadas` es 0: no llames a `creator-finish-workflow`. Informa el fallo según la Sección 4 y ofrece reintentar.
+
 ---
 
 ### Paso 9 — Cierre
 
-Una vez el subagente confirme el guardado, responde al usuario con el resumen final:
+Una vez el subagente confirme el guardado con al menos una pregunta creada y hayas llamado a `creator-finish-workflow`, responde al usuario con el resumen final:
 
 > "¡Listo! Se han creado **N preguntas** en tu evaluación. Puedes revisarlas y editarlas directamente en la plataforma Creator."
 
@@ -252,6 +257,7 @@ Los siguientes campos forman el objeto `config_evaluacion`, usado en el PUT (`cr
 | `creator-get-questionnaire-info`  | `questionnaire_id`     | int             | sí        | Consulta la configuración actual del cuestionario                           | Contexto del chat al iniciar el flujo               | `482`          |
 | `creator-put-questionnaire-info`  | `questionnaire_id`     | int             | sí        | ID del cuestionario (path parameter en la tool)                             | Mismo `questionnaire_id` del flujo                  | `482`          |
 | `creator-put-questionnaire-info`  | Resto de campos        | según Sección 3 | sí        | Payload completo de atributos del cuestionario                              | Valores del GET + cambios acordados con el usuario  | ver Sección 3  |
+| `creator-finish-workflow`         | —                      | —               | no        | Señaliza al runtime que el flujo de generación finalizó con éxito           | Tras respuesta exitosa del subagente de generación (`creadas` ≥ 1) | `{}` |
 
 ### Subagentes
 
@@ -366,7 +372,8 @@ Basándome en tu contenido y la dificultad seleccionada, te propongo la siguient
 
 Usuario: Sí.
 
-Agente: [Delega al subagente de generación con questionnaire_id=482 + todos los datos]
+Agente: [Delega al subagente de generación con questionnaire_id=482 + todos los datos → status "ok", creadas=8]
+Agente: [Llama creator-finish-workflow con payload {}]
 ¡Listo! Se crearon 8 preguntas en tu evaluación. Puedes revisarlas y editarlas directamente en Creator.
 ```
 
