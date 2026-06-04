@@ -138,9 +138,9 @@ Ejemplo:
 ```
 
 ### `closed_text`
-Campos adicionales:
+Campos adicionales (todos obligatorios):
 - `correct_statement` (string): respuesta corta correcta (1–5 palabras).
-- `accuracy` (string): modo de comparación de la respuesta del estudiante. Solo estos valores son válidos:
+- `accuracy` (string): modo de comparación. Valores permitidos: `"exact"`, `"ignore_accents"`, `"wildcard"`.
 
 | Valor | Comportamiento |
 |-------|----------------|
@@ -152,8 +152,8 @@ Reglas:
 - La respuesta debe ser inequívoca y deducible directamente del contenido fuente.
 - Usa `"exact"` cuando la ortografía (incluidas tildes) forma parte de lo evaluado.
 - Usa `"ignore_accents"` cuando la respuesta correcta lleva tildes pero no es crítico exigirlas al estudiante.
-- Usa `"wildcard"` solo cuando cualquier respuesta corta sea aceptable (p. ej. preguntas exploratorias); en la mayoría de los casos prefiere `"exact"` o `"ignore_accents"`.
-- **Nunca** uses  valores fuera de los tres listados.
+- Usa `"wildcard"` solo cuando cualquier respuesta corta sea aceptable; en la mayoría de los casos prefiere `"exact"` o `"ignore_accents"`.
+- **Nunca** uses valores fuera de los tres listados.
 
 Ejemplo:
 ```json
@@ -232,6 +232,7 @@ Ejemplo:
    - Conteo por tipo coincide con la distribución.
    - Cada pregunta cumple su estructura de tipo.
    - En preguntas `essay`, `number_words_needed` está entre 1 y 100 (inclusive).
+   - En preguntas `closed_text`, `statement`, `correct_statement` y `accuracy` están presentes; `accuracy` es uno de `exact`, `ignore_accents`, `wildcard`.
    - Sin duplicados ni pistas cruzadas.
 6. Llamar a la tool `creator-post-exam-questions` **una sola vez** con el payload completo (Sección 7).
 7. Interpretar el resultado de la tool y retornarlo al agente principal (Sección 8).
@@ -264,8 +265,8 @@ La tool recibe un único argumento `payload` (dict) con las llaves `questionnair
 | `creator-post-exam-questions`| `payload.questions[].statement` | string | sí  | Enunciado de la pregunta                                                    | Redacción basada en el contenido fuente             | `"La glucólisis ocurre en el citoplasma."` |
 | `creator-post-exam-questions`| `payload.questions[].options` | array\<object\> \| null | no* | Opciones para `multiple_choice_single_answer`, `multiple_choice_multiple_answers` y `binary`. Cada item: `{ "statement": string, "is_correct": bool }` | Redacción según Sección 4 | ver 7.3 |
 | `creator-post-exam-questions`| `payload.questions[].matching_options` | array\<object\> \| null | no* | Pares `{ "term": string, "match": string }` para `matching`                 | Redacción según Sección 4                           | ver 7.3 |
-| `creator-post-exam-questions`| `payload.questions[].correct_statement` | string \| null | no* | Respuesta correcta para `closed_text`                                       | Redacción según Sección 4                           | `"Bogotá"` |
-| `creator-post-exam-questions`| `payload.questions[].accuracy` | string \| null | no* | Modo de comparación para `closed_text`: `"exact"`, `"ignore_accents"` o `"wildcard"` | Redacción según Sección 4                           | `"exact"` |
+| `creator-post-exam-questions`| `payload.questions[].correct_statement` | string | sí (closed_text) | Respuesta correcta para `closed_text` | Redacción según Sección 4 | `"Bogotá"` |
+| `creator-post-exam-questions`| `payload.questions[].accuracy` | string | sí (closed_text) | Modo de comparación: `"exact"`, `"ignore_accents"` o `"wildcard"` | Redacción según Sección 4 | `"exact"` |
 | `creator-post-exam-questions`| `payload.questions[].number_words_needed` | int \| null | no* | Mínimo de palabras para `essay` (1–100; no mayor a 100)                     | Redacción según Sección 4                           | `80` |
 
 \* Obligatorio según el `type` de cada pregunta (ver Sección 4 y tabla 7.2).
@@ -307,6 +308,12 @@ Cada pregunta es un objeto **plano** con `type` + `statement` + únicamente los 
         { "statement": "Verdadero", "is_correct": true  },
         { "statement": "Falso",     "is_correct": false }
       ]
+    },
+    {
+      "type": "closed_text",
+      "statement": "¿Cuál es la capital de Colombia?",
+      "correct_statement": "Bogotá",
+      "accuracy": "exact"
     },
     {
       "type": "matching",

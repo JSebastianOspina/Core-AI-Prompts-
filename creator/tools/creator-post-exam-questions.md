@@ -16,9 +16,9 @@ Esta tool crea, una a una, todas las preguntas de un questionnaire haciendo un P
 
 * **questions[].matching_options (list[dict] | None)**: Pares de emparejamiento para `matching`. Cada item contiene `term` (str) y `match` (str). Obtener del subagente.
 
-* **questions[].correct_statement (str | None)**: Respuesta correcta para `closed_text`. Obtener del subagente.
+* **questions[].correct_statement (str)**: Respuesta correcta para `closed_text` (obligatorio). Obtener del subagente.
 
-* **questions[].accuracy (str | None)**: Modo de comparación para `closed_text`. Valores: `"exact"` o `"approximate"`. Obtener del subagente.
+* **questions[].accuracy (str)**: Modo de comparación para `closed_text` (obligatorio). Valores: `"exact"`, `"ignore_accents"`, `"wildcard"`. Obtener del subagente.
 
 * **questions[].number_words_needed (int | None)**: Mínimo de palabras esperadas para `essay`. Entero entre 1 y 100 inclusive; **no puede ser mayor a 100**. Obtener del subagente.
 

@@ -6,6 +6,8 @@ from pydantic import BaseModel, Field
 
 BASE_URL = "https://pub-apps.ubitslearning.com/api/questionnaire/v1"
 
+CLOSED_TEXT_ACCURACY = {"exact", "ignore_accents", "wildcard"}
+
 ENDPOINTS = {
     "multiple_choice_single_answer": None,
     "multiple_choice_multiple_answers": None,
@@ -39,8 +41,8 @@ class QuestionItem(BaseModel):
     - statement: enunciado de la pregunta.
     - options: opciones (multiple_choice_*, binary).
     - matching_options: pares term/match (matching).
-    - correct_statement: respuesta corta correcta (closed_text).
-    - accuracy: modo de comparación de closed_text ("exact" | "approximate").
+    - correct_statement: respuesta corta correcta (closed_text; obligatorio).
+    - accuracy: precisión de closed_text ("exact" | "ignore_accents" | "wildcard"; obligatorio).
     - number_words_needed: mínimo de palabras esperadas (essay).
     """
 
@@ -102,7 +104,7 @@ def _build_jsonapi_body(question: dict) -> dict | None:
     elif q_type == "closed_text":
         correct = question.get("correct_statement")
         accuracy = question.get("accuracy")
-        if not correct or not accuracy:
+        if not correct or not accuracy or accuracy not in CLOSED_TEXT_ACCURACY:
             return None
         relationships["question_closed_text"] = {
             "data": {"statement": correct, "accuracy": accuracy}
