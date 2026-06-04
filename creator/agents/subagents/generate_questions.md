@@ -140,10 +140,20 @@ Ejemplo:
 ### `closed_text`
 Campos adicionales:
 - `correct_statement` (string): respuesta corta correcta (1–5 palabras).
-- `accuracy` (string): `"exact"` (coincidencia exacta) o `"approximate"` (admite variaciones menores de mayúsculas/tildes).
+- `accuracy` (string): modo de comparación de la respuesta del estudiante. Solo estos valores son válidos:
+
+| Valor | Comportamiento |
+|-------|----------------|
+| `"exact"` | Requiere acentos; debe coincidir exactamente con `correct_statement`. |
+| `"ignore_accents"` | No importa si el estudiante omite los acentos. |
+| `"wildcard"` | Acepta cualquier respuesta como válida. |
 
 Reglas:
 - La respuesta debe ser inequívoca y deducible directamente del contenido fuente.
+- Usa `"exact"` cuando la ortografía (incluidas tildes) forma parte de lo evaluado.
+- Usa `"ignore_accents"` cuando la respuesta correcta lleva tildes pero no es crítico exigirlas al estudiante.
+- Usa `"wildcard"` solo cuando cualquier respuesta corta sea aceptable (p. ej. preguntas exploratorias); en la mayoría de los casos prefiere `"exact"` o `"ignore_accents"`.
+- **Nunca** uses  valores fuera de los tres listados.
 
 Ejemplo:
 ```json
@@ -255,7 +265,7 @@ La tool recibe un único argumento `payload` (dict) con las llaves `questionnair
 | `creator-post-exam-questions`| `payload.questions[].options` | array\<object\> \| null | no* | Opciones para `multiple_choice_single_answer`, `multiple_choice_multiple_answers` y `binary`. Cada item: `{ "statement": string, "is_correct": bool }` | Redacción según Sección 4 | ver 7.3 |
 | `creator-post-exam-questions`| `payload.questions[].matching_options` | array\<object\> \| null | no* | Pares `{ "term": string, "match": string }` para `matching`                 | Redacción según Sección 4                           | ver 7.3 |
 | `creator-post-exam-questions`| `payload.questions[].correct_statement` | string \| null | no* | Respuesta correcta para `closed_text`                                       | Redacción según Sección 4                           | `"Bogotá"` |
-| `creator-post-exam-questions`| `payload.questions[].accuracy` | string \| null | no* | Modo de comparación para `closed_text`: `"exact"` o `"approximate"`         | Redacción según Sección 4                           | `"exact"` |
+| `creator-post-exam-questions`| `payload.questions[].accuracy` | string \| null | no* | Modo de comparación para `closed_text`: `"exact"`, `"ignore_accents"` o `"wildcard"` | Redacción según Sección 4                           | `"exact"` |
 | `creator-post-exam-questions`| `payload.questions[].number_words_needed` | int \| null | no* | Mínimo de palabras para `essay` (1–100; no mayor a 100)                     | Redacción según Sección 4                           | `80` |
 
 \* Obligatorio según el `type` de cada pregunta (ver Sección 4 y tabla 7.2).
@@ -269,7 +279,7 @@ Cada pregunta es un objeto **plano** con `type` + `statement` + únicamente los 
 | `multiple_choice_single_answer`     | `options[{statement, is_correct}]` (4 ítems, 1 correcto)        |
 | `multiple_choice_multiple_answers`  | `options[{statement, is_correct}]` (4–5 ítems, 2–4 correctos)   |
 | `binary`                            | `options[{statement, is_correct}]` (2 ítems: V/F o Sí/No)       |
-| `closed_text`                       | `correct_statement`, `accuracy` (`"exact"` o `"approximate"`)   |
+| `closed_text`                       | `correct_statement`, `accuracy` (`"exact"`, `"ignore_accents"` o `"wildcard"`) |
 | `matching`                          | `matching_options[{term, match}]` (3–6 pares)                   |
 | `essay`                             | `number_words_needed` (entero 1–100; no mayor a 100)            |
 

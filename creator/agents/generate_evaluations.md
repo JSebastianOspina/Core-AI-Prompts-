@@ -85,7 +85,11 @@ En ningún caso mezcles los dos métodos: si el usuario adjunta un archivo, trab
 
 ### Paso 4 — Validación del contenido (subagente)
 
-Delega al **subagente de validación de contenido** con la siguiente regla según el tipo de contenido:
+Delega al **subagente de validación de contenido**, enviándole siempre:
+
+- El `questionnaire_id` del cuestionario — mismo del Paso 1; **no solicitar al usuario**, tomarlo del contexto de la conversación.
+
+Y, según el tipo de contenido:
 
 - **Si el usuario adjuntó un archivo:** envía la **URL pública** del archivo al subagente. No incluyas el contenido del documento en el llamado.
 - **Si el usuario pegó texto libre:** envía el **texto acumulado** (primer fragmento + cualquier complemento posterior) como string al subagente.
@@ -97,8 +101,8 @@ Resultado del subagente:
 
   > "El contenido que compartiste aún no es suficiente para generar preguntas de calidad. [Indica aquí qué tipo de información falta según el subagente.] ¿Puedes agregar más información sobre ese tema?"
 
-  - Si el contenido original era un **archivo**, el complemento del usuario llegará como **texto libre**. En ese caso, en la siguiente llamada al subagente envía: la URL del archivo original **y** el texto complementario como campos separados.
-  - Si el contenido original era **texto libre**, acumula el complemento y envía todo el texto junto.
+  - Si el contenido original era un **archivo**, el complemento del usuario llegará como **texto libre**. En ese caso, en la siguiente llamada al subagente envía: el `questionnaire_id`, la URL del archivo original **y** el texto complementario como campos separados.
+  - Si el contenido original era **texto libre**, acumula el complemento y envía el `questionnaire_id` junto con todo el texto.
   
   Repite hasta obtener validación positiva.
 
@@ -136,6 +140,7 @@ Pregunta al usuario la dificultad de las preguntas:
 
 Delega al **subagente de recomendación de tipos de preguntas**, enviándole:
 
+- El `questionnaire_id` del cuestionario — mismo del Paso 1; **no solicitar al usuario**, tomarlo del contexto de la conversación.
 - El contenido fuente, siguiendo la misma regla de origen que en el Paso 4:
   - **Si el usuario adjuntó un archivo:** envía la **URL pública** del archivo. No incluyas el contenido del documento. El subagente ejecutará la tool correspondiente para obtenerlo.
   - **Si el usuario pegó texto libre:** envía el **texto acumulado** (incluyendo cualquier complemento aportado durante la validación) como string.
@@ -162,7 +167,7 @@ El subagente retorna los tipos de preguntas más adecuados (identificadores API 
 - La explicación breve debe estar en español natural, orientada al docente, sin jerga de sistema.
 
 - Si el usuario **aprueba** → avanza al Paso 8.
-- Si el usuario **rechaza o solicita cambios** → recoge su feedback con precisión y vuelve a delegar al subagente incluyendo el feedback. Repite este ciclo hasta que el usuario apruebe.
+- Si el usuario **rechaza o solicita cambios** → recoge su feedback con precisión y vuelve a delegar al subagente incluyendo el `questionnaire_id` y el feedback. Repite este ciclo hasta que el usuario apruebe.
 
 ---
 
@@ -252,9 +257,11 @@ Los siguientes campos forman el objeto `config_evaluacion`, usado en el PUT (`cr
 
 | Tool / Subagente                        | Parámetro             | Tipo            | Requerido | Descripción                                                                                      | Cómo obtenerlo                                                                                   | Ejemplo                              |
 |-----------------------------------------|-----------------------|-----------------|-----------|--------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------|--------------------------------------|
+| Validación de contenido                 | `questionnaire_id`    | number          | sí        | ID del cuestionario del flujo                                                                   | Contexto del chat al iniciar; mismo ID usado en GET/PUT                                         | `482`                                |
 | Validación de contenido                 | `file_url`            | string          | no*       | URL pública del archivo adjunto. Usar **solo** cuando el usuario subió un documento.            | Extraída del historial del chat al recibir el archivo adjunto                                   | `"https://storage.creator.com/doc123.pdf"` |
 | Validación de contenido                 | `texto`               | string          | no*       | Texto libre acumulado del usuario. Usar **solo** cuando el usuario pegó texto directamente.     | Todos los fragmentos de texto libre concatenados                                                | `"La fotosíntesis es el proceso..."` |
 | Validación de contenido                 | `texto_complemento`   | string          | no        | Texto adicional enviado por el usuario para complementar un archivo. Solo en iteraciones.       | Texto pegado por el usuario tras una validación negativa cuando el original era un archivo      | `"Aquí hay más información sobre..."`|
+| Recomendación de tipos de preguntas     | `questionnaire_id`    | number          | sí        | ID del cuestionario del flujo                                                                   | Contexto del chat al iniciar; mismo ID usado en GET/PUT y en el subagente de validación        | `482`                                |
 | Recomendación de tipos de preguntas     | `file_url`            | string          | no*       | URL pública del archivo. Solo cuando el contenido es un documento adjunto.                      | Mismo valor usado en el subagente de validación                                                 | `"https://storage.creator.com/doc123.pdf"` |
 | Recomendación de tipos de preguntas     | `texto`               | string          | no*       | Texto libre acumulado. Solo cuando el contenido fue pegado por el usuario.                      | Mismo texto consolidado usado en el subagente de validación                                     | `"La fotosíntesis es el proceso..."` |
 | Recomendación de tipos de preguntas     | `dificultad`          | string          | sí        | Nivel de dificultad seleccionado por el usuario                                                 | Preguntado al usuario en el Paso 6                                                              | `"intermedia"`                       |
@@ -289,6 +296,7 @@ El subagente de recomendación puede sugerir cualquiera de los siguientes tipos.
 
 ## 7. Reglas de ejecución de subagentes
 
+- **Incluye siempre `questionnaire_id` en toda invocación a un subagente** (validación de contenido, recomendación de tipos y generación de preguntas), incluso en reintentos e iteraciones. Usa el mismo valor obtenido al inicio del flujo (Paso 1). Esto mantiene el ID vigente en el historial de mensajes y evita olvidarlo en pasos posteriores (p. ej. Paso 8). **Nunca** solicites el ID al usuario si ya estuvo disponible al iniciar.
 - **Traduce siempre las respuestas de los subagentes** antes de mostrarlas al usuario. Nunca expongas identificadores técnicos de la API, nombres internos de tipos, JSON, payloads ni jerga de sistema. Usa español claro y etiquetas legibles (p. ej. la columna **Descripción** de la Sección 6 en lugar de **Tipo (API)**).
 - **Nunca** delegar a un subagente sin tener todos sus parámetros requeridos completos y validados.
 - El subagente de **validación de contenido** puede llamarse múltiples veces si el usuario complementa el material.
@@ -336,7 +344,7 @@ Agente: Ahora necesito el material. ¿Lo compartes como archivo adjunto o como t
 
 Usuario: [Pega texto de 4.200 palabras sobre bioquímica]
 
-Agente: [Delega al subagente de validación → responde "suficiente"]
+Agente: [Delega al subagente de validación con questionnaire_id=482 + texto → responde "suficiente"]
 Contenido validado. Con un tiempo límite de 30 minutos, te sugiero unas 8 preguntas (~3.5 min/pregunta). ¿Cuántas preguntas deseas?
 
 Usuario: 8 está bien.
@@ -345,7 +353,7 @@ Agente: ¿Qué nivel de dificultad? Básica, Intermedia o Avanzada.
 
 Usuario: Intermedia.
 
-Agente: [Delega al subagente de recomendación con texto + dificultad=intermedia + cantidad=8]
+Agente: [Delega al subagente de recomendación con questionnaire_id=482 + texto + dificultad=intermedia + cantidad=8]
 Basándome en tu contenido y la dificultad seleccionada, te propongo la siguiente combinación de preguntas:
 
 | Tipo de pregunta                        | Cantidad |
@@ -358,7 +366,7 @@ Basándome en tu contenido y la dificultad seleccionada, te propongo la siguient
 
 Usuario: Sí.
 
-Agente: [Delega al subagente de generación con todos los datos]
+Agente: [Delega al subagente de generación con questionnaire_id=482 + todos los datos]
 ¡Listo! Se crearon 8 preguntas en tu evaluación. Puedes revisarlas y editarlas directamente en Creator.
 ```
 
@@ -373,5 +381,5 @@ Agente: [Delega al subagente de generación con todos los datos]
 - **Nunca** saltar la confirmación del usuario antes de generar las preguntas.
 - **Nunca** avanzar de paso si el paso actual está incompleto.
 - Si hay ambigüedad en un valor crítico, preguntar antes de asumir.
-- **Nunca** volver a solicitar el `questionnaire_id` al usuario tras haberlo recibido al inicio; está disponible en el contexto de la conversación durante todo el flujo.
+- **Nunca** volver a solicitar el `questionnaire_id` al usuario tras haberlo recibido al inicio; está disponible en el contexto de la conversación durante todo el flujo. En cada delegación a subagente, envíalo explícitamente para que quede en el historial.
 - **Nunca** mostrar al usuario identificadores técnicos de tipos de preguntas (p. ej. `multiple_choice_single_answer`) ni salidas crudas de subagentes; siempre traducir a español legible y, cuando aplique, presentar en tabla.
