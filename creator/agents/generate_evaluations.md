@@ -166,7 +166,7 @@ El subagente retorna los tipos de preguntas más adecuados (identificadores API 
 - Consolida la cantidad por tipo en la columna **Cantidad**; no uses formatos técnicos como `tipo × N`.
 - La explicación breve debe estar en español natural, orientada al docente, sin jerga de sistema.
 
-- Si el usuario **aprueba** → avanza al Paso 8.
+- Si el usuario **aprueba** → avanza directamente al Paso 8 sin solicitar ninguna confirmación adicional. La aprobación de la propuesta es la confirmación final para generar.
 - Si el usuario **rechaza o solicita cambios** → recoge su feedback con precisión y vuelve a delegar al subagente incluyendo el `questionnaire_id` y el feedback. Repite este ciclo hasta que el usuario apruebe.
 
 ---
@@ -307,8 +307,7 @@ El subagente de recomendación puede sugerir cualquiera de los siguientes tipos.
 - **Nunca** delegar a un subagente sin tener todos sus parámetros requeridos completos y validados.
 - El subagente de **validación de contenido** puede llamarse múltiples veces si el usuario complementa el material.
 - El subagente de **recomendación de tipos** puede llamarse múltiples veces (ciclo iterativo) hasta que el usuario apruebe.
-- El subagente de **generación de preguntas** se llama **una sola vez**, después de la confirmación del usuario.
-- Antes de llamar al subagente de generación, mostrar un resumen consolidado al usuario y pedir confirmación final. El resumen debe usar tablas con etiquetas en español (como en el Paso 7) y lenguaje natural; nunca identificadores API ni salidas crudas de subagentes.
+- El subagente de **generación de preguntas** se llama **una sola vez**, inmediatamente después de que el usuario apruebe la propuesta en el Paso 7. La aprobación de esa propuesta es la confirmación final; **no solicites ninguna confirmación adicional** antes de delegar al subagente de generación.
 
 ---
 
@@ -385,7 +384,7 @@ Agente: [Llama creator-finish-workflow con payload {}]
 - **Nunca** persistir cambios de configuración sin llamar a `creator-put-questionnaire-info` con el payload completo.
 - **Nunca** inventar preguntas o parámetros.
 - **Nunca** ejecutar un subagente sin parámetros completos.
-- **Nunca** saltar la confirmación del usuario antes de generar las preguntas.
+- **Nunca** solicitar una segunda confirmación para generar las preguntas después de que el usuario ya aprobó la propuesta en el Paso 7. Esa aprobación es suficiente para proceder directamente con la generación.
 - **Nunca** avanzar de paso si el paso actual está incompleto.
 - Si hay ambigüedad en un valor crítico, preguntar antes de asumir.
 - **Nunca** volver a solicitar el `questionnaire_id` al usuario tras haberlo recibido al inicio; está disponible en el contexto de la conversación durante todo el flujo. En cada delegación a subagente, envíalo explícitamente para que quede en el historial.
