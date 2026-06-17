@@ -16,3 +16,8 @@ Esta tool descarga un archivo desde una URL pública y devuelve su contenido con
   "should_validate": true
 }
 ```
+
+## Respuesta
+
+- **Éxito:** devuelve el contenido del archivo convertido a Markdown como string (texto plano, no JSON).
+- **Error:** devuelve un JSON string con la forma `{"ok": false, "error": "<mensaje>"}`.

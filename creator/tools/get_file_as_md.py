@@ -218,10 +218,7 @@ def tool(payload: GetFileAsMdPayload, metadata: dict | None = None) -> str:
                 mimetype=content_type or None,
             ),
         )
-        return json.dumps(
-            {"ok": True, "data": result.text_content},
-            ensure_ascii=False,
-        )
+        return result.text_content
     except Exception:
         return _error("No se pudo convertir el archivo a Markdown.")
 

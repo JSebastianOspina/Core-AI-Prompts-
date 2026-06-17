@@ -94,12 +94,11 @@ Y, según el tipo de contenido:
 - **Si el usuario adjuntó un archivo:** envía la **URL pública** del archivo al subagente. No incluyas el contenido del documento en el llamado.
 - **Si el usuario pegó texto libre:** envía el **texto acumulado** (primer fragmento + cualquier complemento posterior) como string al subagente.
 
-Resultado del subagente:
+Resultado del subagente (responde en texto plano, sin JSON):
 
-- Si responde que el contenido **es suficiente** → avanza al Paso 5.
-- Si responde que el contenido **no es suficiente** → comunica al usuario de forma clara qué falta y solicita que complemente el material. Traduce la respuesta del subagente a lenguaje sencillo; no cites respuestas técnicas, estructuras internas ni detalles de implementación:
-
-  > "El contenido que compartiste aún no es suficiente para generar preguntas de calidad. [Indica aquí qué tipo de información falta según el subagente.] ¿Puedes agregar más información sobre ese tema?"
+- Si la respuesta es una **ruta de Sandbox** (`/shared/....md`) o la palabra **`suficiente`** → el contenido **es suficiente**. No esperes ningún otro dato. Avanza al Paso 5.
+  - **Si la respuesta es una ruta de Sandbox** (caso de archivo adjunto), **guárdala en memoria** (`file_path`). A partir de este punto, esa ruta del Sandbox **reemplaza por completo a la URL** del archivo: es lo único que pasarás a los subagentes de recomendación (Paso 7) y de generación (Paso 8) para referirse al contenido. **No vuelvas a usar ni propagar la URL** del archivo en esos pasos.
+- En **cualquier otro caso**, la respuesta es el **mensaje de error** ya redactado por el subagente en lenguaje natural, claro y listo para el usuario. **Transmítelo tal cual** (a lo sumo ajusta el tono para integrarlo en la conversación); no lo reescribas ni añadas detalles técnicos. Ese mensaje ya explica qué falta y pide el complemento, así que úsalo como base para solicitar el material adicional.
 
   - Si el contenido original era un **archivo**, el complemento del usuario llegará como **texto libre**. En ese caso, en la siguiente llamada al subagente envía: el `questionnaire_id`, la URL del archivo original **y** el texto complementario como campos separados.
   - Si el contenido original era **texto libre**, acumula el complemento y envía el `questionnaire_id` junto con todo el texto.
@@ -142,7 +141,7 @@ Delega al **subagente de recomendación de tipos de preguntas**, enviándole:
 
 - El `questionnaire_id` del cuestionario — mismo del Paso 1; **no solicitar al usuario**, tomarlo del contexto de la conversación.
 - El contenido fuente, siguiendo la misma regla de origen que en el Paso 4:
-  - **Si el usuario adjuntó un archivo:** envía la **URL pública** del archivo. No incluyas el contenido del documento. El subagente ejecutará la tool correspondiente para obtenerlo.
+  - **Si el usuario adjuntó un archivo:** envía la **ruta del Sandbox** (`file_path`, p. ej. `/shared/archivo.md`) devuelta por el validador en el Paso 4. **No** envíes la URL del archivo ni su contenido. El subagente leerá el archivo directamente del filesystem.
   - **Si el usuario pegó texto libre:** envía el **texto acumulado** (incluyendo cualquier complemento aportado durante la validación) como string.
 - La dificultad seleccionada
 - La cantidad de preguntas
@@ -181,7 +180,7 @@ Delega al **subagente de generación de preguntas**, enviándole:
 - La dificultad
 - La cantidad de preguntas
 - El contenido fuente, siguiendo la misma regla de origen que en el Paso 4:
-  - **Si el usuario adjuntó un archivo:** envía la **URL pública** del archivo. No incluyas el contenido del documento. El subagente ejecutará la tool correspondiente para obtenerlo.
+  - **Si el usuario adjuntó un archivo:** envía la **ruta del Sandbox** (`file_path`, p. ej. `/shared/archivo.md`) devuelta por el validador en el Paso 4. **No** envíes la URL del archivo ni su contenido. El subagente leerá el archivo directamente del filesystem.
   - **Si el usuario pegó texto libre:** envía el **texto acumulado** (incluyendo cualquier complemento aportado durante la validación) como string.
 
 Este subagente genera las preguntas y las guarda directamente en la plataforma Creator.
@@ -268,12 +267,12 @@ Los siguientes campos forman el objeto `config_evaluacion`, usado en el PUT (`cr
 | Validación de contenido                 | `texto`               | string          | no*       | Texto libre acumulado del usuario. Usar **solo** cuando el usuario pegó texto directamente.     | Todos los fragmentos de texto libre concatenados                                                | `"La fotosíntesis es el proceso..."` |
 | Validación de contenido                 | `texto_complemento`   | string          | no        | Texto adicional enviado por el usuario para complementar un archivo. Solo en iteraciones.       | Texto pegado por el usuario tras una validación negativa cuando el original era un archivo      | `"Aquí hay más información sobre..."`|
 | Recomendación de tipos de preguntas     | `questionnaire_id`    | number          | sí        | ID del cuestionario del flujo                                                                   | Contexto del chat al iniciar; mismo ID usado en GET/PUT y en el subagente de validación        | `482`                                |
-| Recomendación de tipos de preguntas     | `file_url`            | string          | no*       | URL pública del archivo. Solo cuando el contenido es un documento adjunto.                      | Mismo valor usado en el subagente de validación                                                 | `"https://storage.creator.com/doc123.pdf"` |
+| Recomendación de tipos de preguntas     | `file_path`           | string          | no*       | Ruta del Sandbox (`/shared/....md`) del archivo. Solo cuando el contenido es un documento adjunto. El subagente lee el archivo del filesystem; **no** se envía la URL. | Ruta del Sandbox devuelta por el subagente de validación en el Paso 4                            | `"/shared/doc123.md"` |
 | Recomendación de tipos de preguntas     | `texto`               | string          | no*       | Texto libre acumulado. Solo cuando el contenido fue pegado por el usuario.                      | Mismo texto consolidado usado en el subagente de validación                                     | `"La fotosíntesis es el proceso..."` |
 | Recomendación de tipos de preguntas     | `dificultad`          | string          | sí        | Nivel de dificultad seleccionado por el usuario                                                 | Preguntado al usuario en el Paso 6                                                              | `"intermedia"`                       |
 | Recomendación de tipos de preguntas     | `cantidad_preguntas`  | number          | sí        | Número de preguntas solicitadas                                                                  | Definido en el Paso 5                                                                           | `10`                                 |
 | Recomendación de tipos de preguntas     | `feedback_usuario`    | string          | no        | Retroalimentación del usuario si rechazó la propuesta anterior                                  | Recopilado en la iteración de rechazo                                                           | `"Quiero más preguntas de matching"` |
-| Generación de preguntas                 | `file_url`            | string          | no*       | URL pública del archivo. Solo cuando el contenido es un documento adjunto.                      | Mismo valor propagado desde los pasos anteriores                                                | `"https://storage.creator.com/doc123.pdf"` |
+| Generación de preguntas                 | `file_path`           | string          | no*       | Ruta del Sandbox (`/shared/....md`) del archivo. Solo cuando el contenido es un documento adjunto. El subagente lee el archivo del filesystem; **no** se envía la URL. | Ruta del Sandbox devuelta por el subagente de validación en el Paso 4                            | `"/shared/doc123.md"` |
 | Generación de preguntas                 | `texto`               | string          | no*       | Texto libre acumulado. Solo cuando el contenido fue pegado por el usuario.                      | Mismo texto consolidado de los pasos anteriores                                                 | `"La fotosíntesis es el proceso..."` |
 | Generación de preguntas                 | `tipos_preguntas`     | array\<string\> | sí        | Lista de tipos de preguntas aprobados por el usuario                                            | Resultado confirmado del subagente de recomendación                                             | `["multiple_choice_single_answer", "binary"]` |
 | Generación de preguntas                 | `dificultad`          | string          | sí        | Nivel de dificultad                                                                              | Definido en el Paso 6                                                                           | `"avanzada"`                         |
@@ -281,7 +280,7 @@ Los siguientes campos forman el objeto `config_evaluacion`, usado en el PUT (`cr
 | Generación de preguntas                 | `config_evaluacion`   | object          | sí        | Objeto con todos los parámetros de configuración de la evaluación (contexto)                    | Inicializado con el GET del Paso 1; actualizado tras PUT en el Paso 2 si hubo cambios          | ver Sección 3  |
 | Generación de preguntas                 | `questionnaire_id`    | number          | sí        | ID del cuestionario existente donde se publicarán las preguntas                                 | Contexto del chat al iniciar; mismo ID usado en GET/PUT                                         | `482`                                |
 
-*`file_url` y `texto` son mutuamente excluyentes: se envía uno u otro, nunca ambos al mismo tiempo (salvo `texto_complemento` cuando el original es un archivo).
+*El parámetro de archivo y `texto` son mutuamente excluyentes: se envía uno u otro, nunca ambos al mismo tiempo (salvo `texto_complemento` cuando el original es un archivo, en el subagente de validación). El parámetro de archivo es `file_url` (URL pública) **solo** en el subagente de validación; en los subagentes de recomendación y generación es `file_path` (ruta del Sandbox `/shared/....md`).
 
 ---
 

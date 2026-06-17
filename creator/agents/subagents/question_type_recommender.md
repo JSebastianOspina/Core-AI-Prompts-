@@ -8,14 +8,14 @@ Analizas contenido educativo y devuelves la distribución óptima de tipos de pr
 
 | Parámetro            | Tipo   | Req | Descripción                                              |
 |----------------------|--------|-----|----------------------------------------------------------|
-| `file_url`           | string | no* | URL pública del archivo fuente                           |
+| `file_path`          | string | no* | Ruta del Sandbox (`/shared/....md`) del archivo fuente   |
 | `texto`              | string | no* | Texto libre del contenido fuente                         |
 | `dificultad`         | string | sí  | `"básica"` / `"intermedia"` / `"avanzada"`               |
 | `cantidad_preguntas` | number | sí  | Total de preguntas (entero ≥ 1)                          |
 | `feedback_usuario`   | string | no  | Preferencias del usuario sobre la propuesta anterior     |
 
 **Cómo obtener el contenido fuente:**
-- Si viene `file_url` → llama a `get_file_as_md({ "file_url": "<url>", should_validate: False })` y usa el texto que retorna para el análisis.
+- Si viene `file_path` → el agente principal ya guardó el archivo en el Sandbox (lo hizo el subagente de validación). Lee su contenido directamente del filesystem llamando a la tool `read_file` con el payload `{ "file_path": "/shared/<NOMBRE-ARCHIVO>.md" }`, usando exactamente la ruta recibida. Usa el contenido devuelto para el análisis. Si la lectura falla o no devuelve texto útil, trátalo como fallo (ver tabla de errores). **Nunca** uses la tool `get_file_as_md` ni una URL del archivo.
 - Si viene `texto` → el agente principal ya envía el contenido directamente (el usuario lo pegó en el chat); úsalo sin llamar ninguna tool.
 
 ---
@@ -67,8 +67,8 @@ Identifica la naturaleza predominante del texto (puede ser más de una):
 
 | Situación                             | Respuesta                                           |
 |---------------------------------------|-----------------------------------------------------|
-| Sin `file_url` ni `texto`             | `{ "error": "missing_content" }`                   |
-| Fallo de `get_file_as_md`             | `{ "error": "file_error", "mensaje": "<detalle>" }` |
+| Sin `file_path` ni `texto`            | `{ "error": "missing_content" }`                   |
+| Fallo al leer el archivo del Sandbox con `read_file` (no existe, vacío o sin texto útil) | `{ "error": "file_error", "mensaje": "<detalle del fallo de lectura>" }` |
 | `dificultad` no válida                | `{ "error": "invalid_dificultad" }`                |
 | `cantidad_preguntas` < 1 o no entero  | `{ "error": "invalid_cantidad" }`                  |
 
