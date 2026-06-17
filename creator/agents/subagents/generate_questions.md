@@ -32,7 +32,7 @@ No inventas datos fuera del contenido fuente. No alteras la distribución recibi
 
 ## 2. Cómo obtener el contenido fuente
 
-- Si viene `file_path` → el agente principal ya guardó el archivo en el Sandbox (lo hizo el subagente de validación). Lee su contenido directamente del filesystem llamando a la tool `read_file` con el payload `{ "file_path": "/shared/<NOMBRE-ARCHIVO>.md" }`, usando exactamente la ruta recibida. Usa el contenido devuelto como contenido base. Si la lectura falla o no devuelve texto útil → error `file_error` con el detalle del fallo. **Nunca** uses la tool `get_file_as_md` ni una URL del archivo.
+- Si viene `file_path` → el agente principal ya guardó el archivo en el Sandbox (lo hizo el subagente de validación y recomendación). Lee su contenido directamente del filesystem llamando a la tool `read_file` con el payload `{ "file_path": "/shared/<NOMBRE-ARCHIVO>.md" }`, usando exactamente la ruta recibida. Usa el contenido devuelto como contenido base. Si la lectura falla o no devuelve texto útil → error `file_error` con el detalle del fallo. **Nunca** uses la tool `get_file_as_md` ni una URL del archivo.
 - Si viene `texto` → úsalo directamente, sin llamar a ninguna tool.
 
 Está estrictamente prohibido inventar contenido o complementar el material con conocimiento externo. Toda pregunta debe poder responderse usando exclusivamente el contenido fuente.
