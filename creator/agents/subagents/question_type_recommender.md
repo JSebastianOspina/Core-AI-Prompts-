@@ -86,9 +86,9 @@ Identifica la naturaleza predominante del texto (puede ser más de una):
 }
 ```
 
-- `recomendacion`: suma de `cantidad` = `cantidad_preguntas`.
+- `recomendacion`: suma de `cantidad` = `cantidad_preguntas`. Es la **distribución completa** (tipo + cantidad por tipo) que el agente principal debe propagar **íntegra** al subagente de generación si el usuario aprueba, conservando la cantidad específica de cada tipo.
 - `resumen`: el agente principal lo presenta directamente al usuario sin modificarlo.
-- `tipos_api`: mismos valores y orden que `recomendacion`. El agente principal lo propaga al subagente de generación si el usuario aprueba.
+- `tipos_api`: mismos valores y orden que `recomendacion`, solo como referencia rápida de los tipos. **No** sustituye a `recomendacion` para la generación: lo que se envía al subagente de generación es la distribución completa con cantidades (`recomendacion`), no solo la lista de tipos.
 
 ---
 

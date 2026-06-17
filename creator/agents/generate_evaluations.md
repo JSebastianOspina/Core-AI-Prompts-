@@ -165,7 +165,7 @@ El subagente retorna los tipos de preguntas más adecuados (identificadores API 
 - Consolida la cantidad por tipo en la columna **Cantidad**; no uses formatos técnicos como `tipo × N`.
 - La explicación breve debe estar en español natural, orientada al docente, sin jerga de sistema.
 
-- Si el usuario **aprueba** → avanza directamente al Paso 8 sin solicitar ninguna confirmación adicional. La aprobación de la propuesta es la confirmación final para generar.
+- Si el usuario **aprueba** → avanza directamente al Paso 8 sin solicitar ninguna confirmación adicional. La aprobación de la propuesta es la confirmación final para generar. **Conserva la distribución aprobada completa** (cada tipo con su **cantidad específica**, tal como llegó en el campo `recomendacion` del subagente) para enviarla íntegra al Paso 8; no la reduzcas a la sola lista de tipos.
 - Si el usuario **rechaza o solicita cambios** → recoge su feedback con precisión y vuelve a delegar al subagente incluyendo el `questionnaire_id` y el feedback. Repite este ciclo hasta que el usuario apruebe.
 
 ---
@@ -175,8 +175,7 @@ El subagente retorna los tipos de preguntas más adecuados (identificadores API 
 Delega al **subagente de generación de preguntas**, enviándole:
 
 - El `questionnaire_id` del cuestionario — ya disponible en el contexto de la conversación desde el Paso 1; **no solicitar al usuario**, tomarlo directamente de ahí.
-- Todo el contexto de la evaluación (`config_evaluacion`).
-- Los tipos de preguntas aprobados
+- La **distribución de preguntas aprobada** del Paso 7: cada tipo con su **cantidad específica** (no solo la lista de tipos). Envíala tal como la devolvió el subagente de recomendación en el campo `recomendacion`, es decir, como una lista de objetos `{ "tipo": <api>, "cantidad": <int> }`. La suma de las cantidades debe ser igual a la cantidad total de preguntas.
 - La dificultad
 - La cantidad de preguntas
 - El contenido fuente, siguiendo la misma regla de origen que en el Paso 4:
@@ -202,7 +201,7 @@ Una vez el subagente confirme el guardado con al menos una pregunta creada y hay
 
 ## 3. Reglas de validación y transformación
 
-Los siguientes campos forman el objeto `config_evaluacion`, usado en el PUT (`creator-put-questionnaire-info`) y como contexto para el subagente de generación. Tras el GET, inicialízalo con los valores devueltos por la API; solo cámbialos si el usuario lo pide o tras un PUT exitoso.
+Los siguientes campos forman el objeto `config_evaluacion`, usado en el PUT (`creator-put-questionnaire-info`). Tras el GET, inicialízalo con los valores devueltos por la API; solo cámbialos si el usuario lo pide o tras un PUT exitoso. Este objeto es de uso interno del orquestador y **no** se envía al subagente de generación de preguntas.
 
 | Campo API Creator                  | Tipo     | Validación / Transformación                                                                                                                                                      |
 |------------------------------------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -274,10 +273,9 @@ Los siguientes campos forman el objeto `config_evaluacion`, usado en el PUT (`cr
 | Recomendación de tipos de preguntas     | `feedback_usuario`    | string          | no        | Retroalimentación del usuario si rechazó la propuesta anterior                                  | Recopilado en la iteración de rechazo                                                           | `"Quiero más preguntas de matching"` |
 | Generación de preguntas                 | `file_path`           | string          | no*       | Ruta del Sandbox (`/shared/....md`) del archivo. Solo cuando el contenido es un documento adjunto. El subagente lee el archivo del filesystem; **no** se envía la URL. | Ruta del Sandbox devuelta por el subagente de validación en el Paso 4                            | `"/shared/doc123.md"` |
 | Generación de preguntas                 | `texto`               | string          | no*       | Texto libre acumulado. Solo cuando el contenido fue pegado por el usuario.                      | Mismo texto consolidado de los pasos anteriores                                                 | `"La fotosíntesis es el proceso..."` |
-| Generación de preguntas                 | `tipos_preguntas`     | array\<string\> | sí        | Lista de tipos de preguntas aprobados por el usuario                                            | Resultado confirmado del subagente de recomendación                                             | `["multiple_choice_single_answer", "binary"]` |
+| Generación de preguntas                 | `tipos_preguntas`     | array\<object\> | sí        | Distribución aprobada: cada tipo con su cantidad específica. Cada elemento `{ "tipo": <api>, "cantidad": <int> }`. La suma de `cantidad` debe igualar `cantidad_preguntas`. | Campo `recomendacion` del subagente de recomendación, confirmado por el usuario                  | `[{ "tipo": "multiple_choice_single_answer", "cantidad": 5 }, { "tipo": "matching", "cantidad": 3 }]` |
 | Generación de preguntas                 | `dificultad`          | string          | sí        | Nivel de dificultad                                                                              | Definido en el Paso 6                                                                           | `"avanzada"`                         |
 | Generación de preguntas                 | `cantidad_preguntas`  | number          | sí        | Número de preguntas a generar                                                                   | Definido en el Paso 5                                                                           | `10`                                 |
-| Generación de preguntas                 | `config_evaluacion`   | object          | sí        | Objeto con todos los parámetros de configuración de la evaluación (contexto)                    | Inicializado con el GET del Paso 1; actualizado tras PUT en el Paso 2 si hubo cambios          | ver Sección 3  |
 | Generación de preguntas                 | `questionnaire_id`    | number          | sí        | ID del cuestionario existente donde se publicarán las preguntas                                 | Contexto del chat al iniciar; mismo ID usado en GET/PUT                                         | `482`                                |
 
 *El parámetro de archivo y `texto` son mutuamente excluyentes: se envía uno u otro, nunca ambos al mismo tiempo (salvo `texto_complemento` cuando el original es un archivo, en el subagente de validación). El parámetro de archivo es `file_url` (URL pública) **solo** en el subagente de validación; en los subagentes de recomendación y generación es `file_path` (ruta del Sandbox `/shared/....md`).
