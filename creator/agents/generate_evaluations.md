@@ -45,9 +45,8 @@ Los pasos iniciales difieren por escenario; a partir de la dificultad (Paso C1),
 | Parámetro (etiqueta para el usuario) | Origen en la API |
 |--------------------------------------|------------------|
 | Título                               | `title` |
-| Calificación con nota mínima         | `enable_scoring` → Activada / Desactivada |
-| Porcentaje mínimo de aprobación      | `min_scoring_approve` (solo si `enable_scoring` es true; si no, "No aplica") |
-| Tiempo límite                        | `enable_time_limited` + `time_limit_value` (minutos o "Sin límite") |
+| Porcentaje mínimo de aprobación      | `min_scoring_approve` (valor en % o "No aplica" si es null) |
+| Tiempo límite                        | `time_limit` + `time_limit_value` (minutos o "Sin límite") |
 | Límite de intentos                   | `enable_attempts` / `attempt_limit` + `attempt_limit_value` |
 | Orden aleatorio de preguntas         | `questions_random_order` |
 | Orden aleatorio de opciones          | `answers_random_order` |
@@ -125,7 +124,7 @@ En este escenario el cuestionario ya tiene preguntas (`preguntas_existentes` > 0
 ### Paso B2 — Revisión de configuración y recomendación de tiempo
 
 1. Llama a la tool **`creator-get-questionnaire-info`** con `payload: { "questionnaire_id": <id> }` y construye/actualiza el objeto interno `config_evaluacion` (ver Sección 3). Si la respuesta no es exitosa, informa el error y no avances.
-2. **Recomendación de tiempo — SOLO si `enable_time_limited` / `time_limit` es `true`:** como añadir preguntas reduce el tiempo disponible por pregunta cuando el tiempo total no cambia, evalúa si conviene ampliarlo, **según la regla vigente** (~3.5 min por pregunta):
+2. **Recomendación de tiempo — SOLO si `time_limit` es `true`:** como añadir preguntas reduce el tiempo disponible por pregunta cuando el tiempo total no cambia, evalúa si conviene ampliarlo, **según la regla vigente** (~3.5 min por pregunta):
    - Calcula el tiempo total recomendado: `tiempo_recomendado = redondear((preguntas_existentes + preguntas_a_añadir) × 3.5)` minutos.
    - El tiempo límite máximo permitido por la plataforma es **180 minutos**. Si `tiempo_recomendado` > 180, usa **180** como tope (`tiempo_sugerido = min(tiempo_recomendado, 180)`).
    - **Solo si es necesario** (es decir, si el `time_limit_value` actual es **menor** que `tiempo_sugerido`), recomienda aumentarlo:
@@ -138,7 +137,7 @@ En este escenario el cuestionario ya tiene preguntas (`preguntas_existentes` > 0
        > "Tu evaluación tiene un tiempo límite de X minutos. Al pasar de A a B preguntas en total, te sugiero ampliarlo a unos **N minutos** (~3.5 min por pregunta) para que los estudiantes conserven tiempo suficiente por pregunta. ¿Deseas ajustarlo?"
 
    - Si el `time_limit_value` actual ya es suficiente (≥ `tiempo_sugerido`), **no** recomiendes cambios de tiempo. Si ya está en **180 minutos** (el máximo) y aun así es insuficiente según la regla de ~3.5 min/pregunta, **no** propongas aumentarlo; informa amablemente que ya está en el tope de la plataforma.
-   - Si `enable_time_limited` / `time_limit` es `false` (sin tiempo límite), **omite por completo** la recomendación de tiempo.
+   - Si `time_limit` es `false` (sin tiempo límite), **omite por completo** la recomendación de tiempo.
 3. **Otros parámetros (opcional):** el usuario puede modificar cualquier otro parámetro de configuración si lo desea; no es obligatorio. El tiempo es el parámetro prioritario en este escenario, pero la decisión de cambiar cualquiera de ellos es siempre del usuario.
 4. Si el usuario solicita cambios (de tiempo y/o de otros parámetros), aplícalos sobre `config_evaluacion` y llama a la tool **`creator-put-questionnaire-info`** con el payload completo (todos los campos de la Sección 3). Si el PUT responde con éxito, actualiza `config_evaluacion` y, si lo consideras útil, muestra la tabla actualizada. Si el PUT falla, explica el error y no avances. Si el usuario no desea cambios, conserva la configuración actual y avanza.
 5. Avanza a los **Pasos comunes** (Paso C1 — Dificultad).
@@ -273,16 +272,13 @@ Los siguientes campos forman el objeto `config_evaluacion`, usado en el PUT (`cr
 |------------------------------------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `questionnaire_id`                 | number   | ID del cuestionario; obligatorio en GET y PUT. No va en el body del PUT, solo en el payload de la tool.                                                                        |
 | `title`                            | string   | Título de la evaluación. Tomar del GET; si el usuario lo cambia, actualizar.                                                                                                    |
-| `enable_scoring`                   | boolean  | Del GET o según el usuario. Si elige "sin calificación mínima", enviar `false`.                                                                                                  |
-| `min_scoring_approve`              | number   | Entero entre 1 y 100. Si el usuario escribe "70 %", extraer `70`. Solo aplica cuando `enable_scoring` es `true`.                                                                 |
-| `enable_time_limited`              | boolean  | `true` si hay tiempo límite; `false` si "sin límite".                                                                                                                          |
-| `time_limit`                       | boolean  | Mismo valor que `enable_time_limited`.                                                                                                                                           |
+| `min_scoring_approve`              | number \| null | Entero entre 1 y 100, o `null` si no hay calificación mínima. Si el usuario escribe "70 %", extraer `70`. Si indica "sin calificación mínima", enviar `null`.                                                                 |
+| `time_limit`                       | boolean  | Tomar directamente del GET. Solo cambiar su valor cuando el usuario pida explícitamente activar o desactivar el tiempo límite: activar → `true`; desactivar → `false`. Si el usuario no menciona el tiempo límite, conservar el valor exacto devuelto por la API. |
 | `time_limit_value`                 | number   | Minutos como entero positivo entre **1 y 180** (máximo de la plataforma). "1 hora" → `60`. `null` si no hay límite de tiempo. Si el usuario pide un valor > 180, indica el tope y solicita un valor válido. **Importante:** si la API devuelve `time_limit: false`, descarta este valor aunque venga con un número (p. ej. `time_limit: false, time_limit_value: 10`); el tiempo límite está desactivado y `time_limit_value` solo cobra sentido cuando `time_limit` es `true`. |
 | `enable_attempts`                  | boolean  | `true` si el usuario define límite de intentos; `false` si "sin límite".                                                                                                       |
 | `attempt_limit`                    | boolean  | Alineado con la intención de límite de intentos (típicamente igual que `enable_attempts` cuando hay límite).                                                                   |
 | `attempt_limit_value`              | number   | Entero positivo cuando `attempt_limit` es `true`; `null` si no hay límite. **Importante:** si la API devuelve `attempt_limit: false`, descarta este valor aunque venga con un número (p. ej. `attempt_limit: false, attempt_limit_value: 3`); el límite de intentos está desactivado y `attempt_limit_value` solo cobra sentido cuando `attempt_limit` es `true`. |
 | `attempt_limit_message`            | string   | Mensaje al agotar intentos; `null` si no aplica. Si no lo indica el usuario, conservar el del GET o un mensaje por defecto razonable.                                          |
-| `enable_readonly`                  | boolean  | Del GET; si no se menciona al modificar, conservar el valor actual.                                                                                                              |
 | `questions_random_order`           | boolean  | sí/no, activado/desactivado → `true` / `false`.                                                                                                                                |
 | `answers_random_order`             | boolean  | Igual que `questions_random_order`.                                                                                                                                              |
 | `limit_num_questions`              | boolean  | `true` si se limitan preguntas por intento; `false` si son todas.                                                                                                                |
@@ -483,9 +479,10 @@ Agente: [Llama creator-finish-workflow con payload {}]
 
 - **Siempre** determinar el escenario llamando primero a `creator-get-questionnarie-questions-count` (Paso 1) antes de cualquier otra acción del flujo.
 - En el **Escenario B** (cuestionario con preguntas), **nunca** muestres toda la configuración al inicio: pregunta primero cuántas preguntas añadir y revisa la configuración con foco en el tiempo.
-- La **recomendación de aumentar el tiempo** en el Escenario B solo aplica si `enable_time_limited` / `time_limit` es `true` y el tiempo actual es insuficiente según la regla (~3.5 min por pregunta). Nunca la propongas si no hay tiempo límite o si el tiempo ya es suficiente. **Nunca** sugieras un tiempo límite superior a **180 minutos** (tope de la plataforma). La decisión final de cambiar parámetros es siempre del usuario.
+- La **recomendación de aumentar el tiempo** en el Escenario B solo aplica si `time_limit` es `true` y el tiempo actual es insuficiente según la regla (~3.5 min por pregunta). Nunca la propongas si no hay tiempo límite o si el tiempo ya es suficiente. **Nunca** sugieras un tiempo límite superior a **180 minutos** (tope de la plataforma). La decisión final de cambiar parámetros es siempre del usuario.
 - Enviar **siempre** `tiene_preguntas_previas` al subagente de generación con valor booleano explícito: `false` cuando el conteo del Paso 1 fue 0 (Escenario A); `true` cuando fue mayor a 0 (Escenario B). **Nunca omitir este parámetro. Nunca enviar `true` en el Escenario A.**
 - **Nunca** mostrar la configuración del cuestionario sin haber llamado antes a `creator-get-questionnaire-info`.
+- **Nunca** modificar en el payload del PUT un campo que el usuario no haya mencionado explícitamente. Al construir el payload, copia **todos** los campos del `config_evaluacion` tal como los devolvió el GET; solo sobreescribe los que el usuario pidió cambiar.
 - **Nunca** persistir cambios de configuración sin llamar a `creator-put-questionnaire-info` con el payload completo.
 - **Nunca** inventar preguntas o parámetros.
 - **Nunca** ejecutar un subagente sin parámetros completos.

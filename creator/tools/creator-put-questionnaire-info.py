@@ -11,16 +11,13 @@ class PutQuestionnaireInfoPayload(BaseModel):
 
     - questionnaire_id: ID del questionnaire usado como path parameter.
     - title: Título de la evaluación.
-    - enable_scoring: Activa calificación con puntaje mínimo de aprobación.
-    - min_scoring_approve: Porcentaje mínimo para aprobar (1–100); aplica si enable_scoring es true.
-    - enable_time_limited: Indica si la evaluación tiene límite de tiempo.
-    - time_limit: Debe coincidir con enable_time_limited.
+    - min_scoring_approve: Porcentaje mínimo para aprobar (1–100); null si no hay calificación mínima.
+    - time_limit: Indica si la evaluación tiene límite de tiempo.
     - time_limit_value: Duración en minutos; null si no hay límite de tiempo.
     - enable_attempts: Indica si se configuran intentos limitados.
     - attempt_limit: Activa el límite de intentos en la API.
     - attempt_limit_value: Número máximo de intentos cuando attempt_limit es true.
     - attempt_limit_message: Mensaje al agotar intentos sin aprobar.
-    - enable_readonly: Modo solo lectura del cuestionario.
     - questions_random_order: Orden aleatorio de preguntas.
     - answers_random_order: Orden aleatorio de respuestas.
     - limit_num_questions: Limita cuántas preguntas se muestran por intento.
@@ -31,17 +28,12 @@ class PutQuestionnaireInfoPayload(BaseModel):
         description="ID del questionnaire usado como path parameter en la URL."
     )
     title: str = Field(description="Título de la evaluación.")
-    enable_scoring: bool = Field(
-        description="Activa calificación; si es false, min_scoring_approve puede ignorarse."
-    )
-    min_scoring_approve: int = Field(
-        description="Porcentaje mínimo para aprobar (entero 1–100)."
-    )
-    enable_time_limited: bool = Field(
-        description="true si la evaluación tiene límite de tiempo."
+    min_scoring_approve: int | None = Field(
+        default=None,
+        description="Porcentaje mínimo para aprobar (entero 1–100); null si no hay calificación mínima.",
     )
     time_limit: bool = Field(
-        description="Debe enviarse con el mismo valor que enable_time_limited."
+        description="true si la evaluación tiene límite de tiempo."
     )
     time_limit_value: int | None = Field(
         default=None,
@@ -61,7 +53,6 @@ class PutQuestionnaireInfoPayload(BaseModel):
         default=None,
         description="Mensaje mostrado al agotar intentos sin alcanzar la nota mínima.",
     )
-    enable_readonly: bool = Field(description="Modo solo lectura del cuestionario.")
     questions_random_order: bool = Field(description="Orden aleatorio de preguntas.")
     answers_random_order: bool = Field(description="Orden aleatorio de respuestas.")
     limit_num_questions: bool = Field(
@@ -93,10 +84,7 @@ def tool(payload: PutQuestionnaireInfoPayload, metadata: dict | None = None) -> 
 
     attributes = {
         "title": payload["title"],
-        "enable_scoring": payload["enable_scoring"],
-        "enable_time_limited": payload["enable_time_limited"],
         "enable_attempts": payload["enable_attempts"],
-        "enable_readonly": payload["enable_readonly"],
         "min_scoring_approve": payload["min_scoring_approve"],
         "questions_random_order": payload["questions_random_order"],
         "answers_random_order": payload["answers_random_order"],

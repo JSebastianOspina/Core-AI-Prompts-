@@ -5,6 +5,27 @@ from pydantic import BaseModel, Field
 
 BASE_URL = "https://pub-apps.ubitslearning.com/api/questionnaire/v1"
 
+_HIDDEN_ATTRIBUTES = (
+    "enable_scoring",
+    "enable_time_limited",
+    "enable_readonly",
+)
+
+
+def _strip_hidden_attributes(response_data: dict | list | str) -> dict | list | str:
+    """Elimina atributos que el agente no debe ver ni usar."""
+    if not isinstance(response_data, dict):
+        return response_data
+
+    data = response_data.get("data")
+    if isinstance(data, dict):
+        attributes = data.get("attributes")
+        if isinstance(attributes, dict):
+            for key in _HIDDEN_ATTRIBUTES:
+                attributes.pop(key, None)
+
+    return response_data
+
 
 class GetQuestionnaireInfoPayload(BaseModel):
     """Payload para consultar la configuración de un questionnaire en Creator.
@@ -49,6 +70,9 @@ def tool(payload: GetQuestionnaireInfoPayload, metadata: dict | None = None) -> 
             response_data = response.json()
         except Exception:
             response_data = response.text
+
+        if isinstance(response_data, dict):
+            response_data = _strip_hidden_attributes(response_data)
 
         return json.dumps(
             {
