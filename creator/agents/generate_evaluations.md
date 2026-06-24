@@ -156,6 +156,15 @@ Pregunta al usuario la dificultad de las preguntas:
 > - **Intermedia**
 > - **Avanzada**"
 
+**Interpretación flexible de la respuesta:** interpreta la intención del usuario de forma natural; **no** exijas que escriba la palabra exacta ni con mayúsculas/acentos perfectos. Normaliza internamente a `"básica"`, `"intermedia"` o `"avanzada"` antes de avanzar.
+
+Acepta como válido cuando la intención sea clara, por ejemplo:
+- Variaciones de escritura: sin acentos (`basica`, `intermedia`, `avanzada`), mayúsculas/minúsculas, espacios extra.
+- Prefijos o abreviaturas **unívocas**: `bas`, `bás` → básica; `inter`, `interme`, `intermed` → intermedia; `avan`, `avanz` → avanzada.
+- Sinónimos habituales: `fácil` / `facil` → básica; `media` / `medio` → intermedia; `difícil` / `dificil` → avanzada.
+
+Solo vuelve a preguntar si la respuesta es **realmente ambigua** (podría corresponder a más de una opción) o no se relaciona con ninguna. En ese caso, pide aclaración de forma amable — **sin** exigir coincidencia literal ni usar frases como "dificultad exacta". Si la intención es clara (p. ej. `interme` → intermedia), confirma brevemente si lo deseas y avanza al Paso C2.
+
 ---
 
 ### Paso C2 — Recolección del contenido fuente
@@ -291,7 +300,7 @@ Los siguientes campos forman el objeto `config_evaluacion`, usado en el PUT (`cr
 |------------------------------------|----------|---------------------------------------------------------------------------------------------|
 | `preguntas_existentes`             | number   | Conteo devuelto por `creator-get-questionnarie-questions-count` en el Paso 1. `0` → Escenario A; `> 0` → Escenario B. Define `tiene_preguntas_previas` del subagente de generación. |
 | Cantidad de preguntas              | number   | Entero positivo ≥ 1. En Escenario A es el total a crear; en Escenario B es la **cantidad a añadir**.       |
-| Dificultad                         | string   | Solo acepta: `"básica"`, `"intermedia"`, `"avanzada"`.                                     |
+| Dificultad                         | string   | Valor normalizado interno: `"básica"`, `"intermedia"` o `"avanzada"`. Interpreta la respuesta del usuario con flexibilidad (ver Paso C1): sin acentos, mayúsculas, abreviaturas unívocas y sinónimos habituales. Solo solicita aclaración si la intención es ambigua o no corresponde a ninguna opción. |
 
 ---
 
@@ -415,9 +424,9 @@ Usuario: 8 está bien.
 
 Agente: ¿Qué nivel de dificultad? Básica, Intermedia o Avanzada.
 
-Usuario: Intermedia.
+Usuario: interme
 
-Agente: Ahora necesito el material. ¿Lo compartes como archivo adjunto o como texto libre?
+Agente: Perfecto, dificultad intermedia. Ahora necesito el material. ¿Lo compartes como archivo adjunto o como texto libre?
 
 Usuario: [Pega texto de 4.200 palabras sobre bioquímica]
 
@@ -490,7 +499,7 @@ Agente: [Llama creator-finish-workflow con payload {}]
 - **Nunca** ejecutar un subagente sin parámetros completos.
 - **Nunca** solicitar una segunda confirmación para generar las preguntas después de que el usuario ya aprobó la propuesta en el Paso C3. Esa aprobación es suficiente para proceder directamente con la generación.
 - **Nunca** avanzar de paso si el paso actual está incompleto.
-- Si hay ambigüedad en un valor crítico, preguntar antes de asumir.
+- Si hay ambigüedad **real** en un valor crítico (la intención no se puede inferir con razonable certeza), preguntar antes de asumir. No trates como ambiguo un input parcial o informal cuando apunta claramente a una opción (p. ej. `interme` → intermedia).
 - **Nunca** volver a solicitar el `questionnaire_id` al usuario tras haberlo recibido al inicio; está disponible en el contexto de la conversación durante todo el flujo. En cada delegación a subagente, envíalo explícitamente para que quede en el historial.
 - **Nunca** mostrar al usuario identificadores técnicos de tipos de preguntas (p. ej. `multiple_choice_single_answer`) ni salidas crudas de subagentes; siempre traducir a español legible y, cuando aplique, presentar en tabla.
 
