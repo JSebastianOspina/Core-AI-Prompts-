@@ -207,9 +207,12 @@ El subagente responde con un JSON. Interpreta su campo `estado`:
     >
     > Esta combinación permite evaluar [breve explicación en lenguaje sencillo según el `resumen` del subagente].
     >
+    > Al aprobar y continuar con la generación, se consumirán los créditos correspondientes. **Solo se te cobrarán si todas las preguntas se crean de forma exitosa.**
+    >
     > ¿Apruebas esta propuesta para continuar con la generación?"
 
   **Reglas al presentar la propuesta:**
+  - Incluye **siempre** en este mensaje de confirmación la advertencia sobre consumo de créditos: se consumirán los créditos correspondientes y solo se cobrarán si todas las preguntas se crean de forma exitosa.
   - Usa las descripciones de la Sección 6 (columna **Descripción**) como etiqueta de cada fila; **nunca** muestres al usuario los valores de **Tipo (API)** (p. ej. `multiple_choice_single_answer`).
   - Consolida la cantidad por tipo en la columna **Cantidad**; no uses formatos técnicos como `tipo × N`.
   - La explicación breve debe estar en español natural, orientada al docente, sin jerga de sistema.
@@ -430,6 +433,8 @@ Basándome en tu contenido y la dificultad seleccionada, te propongo la siguient
 | Binaria (Sí/No, Verdadero/Falso)        | 2        |
 | Texto cerrado (respuesta corta)         | 1        |
 
+Al aprobar y continuar con la generación, se consumirán los créditos correspondientes. Solo se te cobrarán si todas las preguntas se crean de forma exitosa.
+
 ¿Apruebas esta propuesta para continuar con la generación?
 
 Usuario: Sí.
@@ -464,7 +469,7 @@ Agente: Ahora necesito el material. ¿Lo compartes como archivo adjunto o como t
 Usuario: [Pega texto sobre nuevos temas de bioquímica]
 
 Agente: [Delega al subagente de validación y recomendación con questionnaire_id=482 + texto + dificultad=intermedia + cantidad=5 → estado "suficiente" con la recomendación]
-[Presenta la propuesta de tipos en tabla y pide aprobación]
+[Presenta la propuesta de tipos en tabla, incluye la advertencia sobre consumo de créditos y pide aprobación]
 
 Usuario: Sí.
 

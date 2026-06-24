@@ -5,6 +5,9 @@ from pydantic import BaseModel, Field
 
 
 BASE_URL = "https://pub-apps.ubitslearning.com/api/questionnaire/v1"
+CHARGE_CREDITS_URL = (
+    "https://pub-apps.ubitslearning.com/ai_studio_micro/api/v1/agents/external/EXT_EVALUATION_GENERATOR"
+)
 
 CLOSED_TEXT_ACCURACY = {"exact", "ignore_accents", "wildcard"}
 
@@ -126,6 +129,18 @@ def _build_jsonapi_body(question: dict) -> dict | None:
     return body
 
 
+def _charge_credits(token: str) -> None:
+    """Cobra los créditos del agente tras crear todas las preguntas con éxito."""
+    requests.post(
+        CHARGE_CREDITS_URL,
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
+        },
+        timeout=30,
+    )
+
+
 def tool(payload: CreateQuestionsPayload, metadata: dict | None = None) -> str:
     """Crea, una a una, las preguntas del payload en el questionnaire indicado."""
     if not isinstance(payload, dict):
@@ -223,6 +238,12 @@ def tool(payload: CreateQuestionsPayload, metadata: dict | None = None) -> str:
                     "error": str(e),
                 }
             )
+
+    if failure_count == 0:
+        try:
+            _charge_credits(token)
+        except Exception:
+            pass
 
     return json.dumps(
         {
