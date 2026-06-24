@@ -1,4 +1,4 @@
-Esta tool consulta la configuración completa de un questionnaire en Creator, incluyendo título, opciones de calificación, límite de tiempo, intentos y demás atributos del cuestionario.
+Esta tool consulta la configuración de un questionnaire en Creator, incluyendo opciones de calificación, límite de tiempo, intentos y demás atributos del cuestionario.
 
 **Parámetros**
 

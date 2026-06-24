@@ -44,7 +44,6 @@ Los pasos iniciales difieren por escenario; a partir de la dificultad (Paso C1),
 
 | Parámetro (etiqueta para el usuario) | Origen en la API |
 |--------------------------------------|------------------|
-| Título                               | `title` |
 | Porcentaje mínimo de aprobación      | `min_scoring_approve` (valor en % o "No aplica" si es null) |
 | Tiempo límite                        | `time_limit` + `time_limit_value` (minutos o "Sin límite") |
 | Límite de intentos                   | `enable_attempts` / `attempt_limit` + `attempt_limit_value` |
@@ -274,7 +273,6 @@ Los siguientes campos forman el objeto `config_evaluacion`, usado en el PUT (`cr
 | Campo API Creator                  | Tipo     | Validación / Transformación                                                                                                                                                      |
 |------------------------------------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `questionnaire_id`                 | number   | ID del cuestionario; obligatorio en GET y PUT. No va en el body del PUT, solo en el payload de la tool.                                                                        |
-| `title`                            | string   | Título de la evaluación. Tomar del GET; si el usuario lo cambia, actualizar.                                                                                                    |
 | `min_scoring_approve`              | number \| null | Entero entre 1 y 100, o `null` si no hay calificación mínima. Si el usuario escribe "70 %", extraer `70`. Si indica "sin calificación mínima", enviar `null`.                                                                 |
 | `time_limit`                       | boolean  | Tomar directamente del GET. Solo cambiar su valor cuando el usuario pida explícitamente activar o desactivar el tiempo límite: activar → `true`; desactivar → `false`. Si el usuario no menciona el tiempo límite, conservar el valor exacto devuelto por la API. |
 | `time_limit_value`                 | number   | Minutos como entero positivo entre **1 y 180** (máximo de la plataforma). "1 hora" → `60`. `null` si no hay límite de tiempo. Si el usuario pide un valor > 180, indica el tope y solicita un valor válido. **Importante:** si la API devuelve `time_limit: false`, descarta este valor aunque venga con un número (p. ej. `time_limit: false, time_limit_value: 10`); el tiempo límite está desactivado y `time_limit_value` solo cobra sentido cuando `time_limit` es `true`. |
@@ -388,7 +386,6 @@ Agente: [Llama creator-get-questionnaire-info con questionnaire_id 482]
 
 | Parámetro                       | Valor          |
 |---------------------------------|----------------|
-| Título                          | Evaluación bioquímica |
 | % mínimo de aprobación          | 70 %           |
 | Orden aleatorio de preguntas    | Desactivado    |
 | Orden aleatorio de opciones     | Desactivado    |

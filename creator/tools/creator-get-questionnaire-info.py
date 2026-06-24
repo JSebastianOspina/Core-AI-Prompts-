@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 BASE_URL = "https://pub-apps.ubitslearning.com/api/questionnaire/v1"
 
 _HIDDEN_ATTRIBUTES = (
+    "title",
     "enable_scoring",
     "enable_time_limited",
     "enable_readonly",
