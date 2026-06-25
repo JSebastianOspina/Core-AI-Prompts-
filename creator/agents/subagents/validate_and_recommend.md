@@ -19,7 +19,7 @@ El orden es estricto: **primero validas, y solo si el contenido es suficiente re
 |----------------------|--------|------|-----------------------------------------------------------------------------|
 | `questionnaire_id`   | number | sí   | ID del cuestionario del flujo.                                              |
 | `file_url`           | string | no*  | URL pública del archivo adjunto. Solo en la **primera lectura** de un documento. |
-| `file_path`          | string | no*  | Ruta del Sandbox (`/shared/....md`) de un archivo **ya guardado**. Solo en iteraciones de feedback sobre la propuesta. |
+| `file_path`          | string | no*  | Ruta del Sandbox (`/shared/....md`) de un contenido **ya guardado** (archivo o texto libre). Solo en iteraciones de feedback sobre la propuesta. |
 | `texto`              | string | no*  | Texto libre acumulado del contenido fuente.                                |
 | `texto_complemento`  | string | no   | Texto adicional del usuario para complementar un archivo insuficiente.      |
 | `dificultad`         | string | sí   | `"básica"` / `"intermedia"` / `"avanzada"`.                                |
@@ -40,9 +40,9 @@ El input determina qué tool usar y si debes ejecutar la validación o saltarla:
 
 - **`file_path`** → el archivo ya fue leído, validado y guardado en una invocación anterior; estás en una **iteración de feedback sobre la propuesta**. Lee su contenido directamente del filesystem con la tool `read_file` y el payload `{ "file_path": "/shared/<NOMBRE-ARCHIVO>.md" }`, usando exactamente la ruta recibida. **No revalides** (el contenido ya fue marcado suficiente): pasa directo a recomendar. Si la lectura falla o no devuelve texto útil, trátalo como `file_error`. **Nunca** uses `get_file_as_md` ni una URL cuando recibes `file_path`.
 
-- **`texto` sin `feedback_usuario`** → contenido pegado por el usuario. Úsalo directamente (sin tools) y **valida**.
+- **`texto` sin `feedback_usuario`** → contenido pegado por el usuario. Úsalo directamente (sin tools) y **valida**. Si el contenido resulta **suficiente**, **inmediatamente después** guárdalo en el filesystem llamando a la tool `write_file` con `{ "file_path": "/shared/texto-libre-<questionnaire_id>.md", "content": "<texto recibido tal cual, sin transformar>" }`, usando el `questionnaire_id` recibido en los inputs. Este paso es obligatorio cuando el contenido es suficiente: la ruta resultante se devuelve en la salida (Caso A, campo `file_path`). Si el contenido es **insuficiente**, **no** guardes nada (devuelve el Caso B, sin `file_path`).
 
-- **`texto` con `feedback_usuario`** → iteración de feedback sobre la propuesta para contenido en texto. Úsalo directamente y **no revalides**: pasa directo a recomendar.
+- **`texto` con `feedback_usuario`** → iteración de feedback sobre la propuesta para contenido en texto. Úsalo directamente y **no revalides**: pasa directo a recomendar. (En la orquestación normal, las iteraciones de feedback sobre texto ya llegan como `file_path`; este caso es un respaldo.) Si recibes el texto por esta vía, guárdalo con `write_file` en `/shared/texto-libre-<questionnaire_id>.md` antes de responder, para que la salida (Caso A) incluya siempre un `file_path` consistente.
 
 Reglas generales:
 
@@ -156,7 +156,7 @@ Devuelve **únicamente** uno de los siguientes JSON, sin texto adicional alreded
 }
 ```
 
-- `file_path`: incluye la ruta del Sandbox **solo si la fuente fue un archivo** (`file_url` o `file_path`). Si la fuente fue `texto`, usa `"file_path": null`.
+- `file_path`: incluye **siempre** la ruta del Sandbox donde quedó guardado el contenido fuente. Si la fuente fue un archivo (`file_url` o `file_path`), es la ruta del `.md` del documento (`/shared/<NOMBRE_ARCHIVO>.md`). Si la fuente fue `texto`, es la ruta `/shared/texto-libre-<questionnaire_id>.md` donde acabas de guardar el texto con `write_file`. El agente principal usará esta ruta en todas las invocaciones posteriores (iteraciones de feedback y generación), reemplazando por completo a la fuente original.
 - `recomendacion`: suma de `cantidad` = `cantidad_preguntas`. Es la **distribución completa** (tipo + cantidad por tipo) que el agente principal debe propagar **íntegra** al subagente de generación si el usuario aprueba, conservando la cantidad específica de cada tipo.
 - `resumen`: el agente principal lo presenta directamente al usuario sin modificarlo.
 - `tipos_api`: mismos valores y orden que `recomendacion`, solo como referencia rápida de los tipos. **No** sustituye a `recomendacion` para la generación.
