@@ -121,7 +121,7 @@ Identifica la naturaleza predominante del texto (puede ser más de una):
 2. Usa entre 2 y 4 tipos distintos. Con cantidad ≤ 5 acepta 2; con cantidad ≥ 10 prefiere 3 o 4.
 3. Ningún tipo supera el 60 % del total.
 4. Redondea al entero más cercano; ajusta el último tipo para que el total sea exacto.
-5. Si hay `feedback_usuario`, tiene prioridad sobre la matriz. Si el usuario pide un tipo marcado ❌ para esa dificultad, inclúyelo con una advertencia en el campo `razon`.
+5. Si hay `feedback_usuario`, tiene prioridad sobre la matriz. Si el usuario pide un tipo marcado ❌ para esa dificultad, inclúyelo y añade una advertencia breve en el campo `resumen`.
 
 ---
 
@@ -149,17 +149,15 @@ Devuelve **únicamente** uno de los siguientes JSON, sin texto adicional alreded
   "estado": "suficiente",
   "file_path": "/shared/<NOMBRE_ARCHIVO>.md",
   "recomendacion": [
-    { "tipo": "<tipo_api>", "cantidad": <entero>, "razon": "<razón breve>" }
+    { "tipo": "<tipo_api>", "cantidad": <entero> }
   ],
-  "resumen": "<3 a 5 oraciones en español, listas para mostrar al usuario: distribución y razón principal por tipo>",
-  "tipos_api": ["<tipo_api_1>", "<tipo_api_2>"]
+  "resumen": "<una sola oración breve (máx ~25 palabras) en español natural, lista para mostrarse al usuario verbatim: qué evalúa esta combinación. No repitas tipos ni cantidades, ya van en la tabla>"
 }
 ```
 
 - `file_path`: incluye **siempre** la ruta del Sandbox donde quedó guardado el contenido fuente. Si la fuente fue un archivo (`file_url` o `file_path`), es la ruta del `.md` del documento (`/shared/<NOMBRE_ARCHIVO>.md`). Si la fuente fue `texto`, es la ruta `/shared/texto-libre-<questionnaire_id>.md` donde acabas de guardar el texto con `write_file`. El agente principal usará esta ruta en todas las invocaciones posteriores (iteraciones de feedback y generación), reemplazando por completo a la fuente original.
-- `recomendacion`: suma de `cantidad` = `cantidad_preguntas`. Es la **distribución completa** (tipo + cantidad por tipo) que el agente principal debe propagar **íntegra** al subagente de generación si el usuario aprueba, conservando la cantidad específica de cada tipo.
-- `resumen`: el agente principal lo presenta directamente al usuario sin modificarlo.
-- `tipos_api`: mismos valores y orden que `recomendacion`, solo como referencia rápida de los tipos. **No** sustituye a `recomendacion` para la generación.
+- `recomendacion`: lista de objetos `{ "tipo": <api>, "cantidad": <int> }`. Suma de `cantidad` = `cantidad_preguntas`. Es la **distribución completa** que el agente principal debe propagar **íntegra** al subagente de generación si el usuario aprueba, conservando la cantidad específica de cada tipo. **No** incluyas el motivo por tipo: la justificación va consolidada (y breve) en `resumen`.
+- `resumen`: una sola oración breve, en español natural y lista para mostrarse al usuario **verbatim** (el agente principal la inserta sin reescribir ni parafrasear). Explica qué evalúa la combinación; **no** repitas tipos ni cantidades (ya van en la tabla). Si por pedido del usuario incluiste un tipo no recomendado para la dificultad, añade aquí una advertencia breve.
 
 ### Caso B — Contenido insuficiente
 
@@ -220,11 +218,10 @@ Usa los JSON de la Sección 5 (Manejo de errores).
   "estado": "suficiente",
   "file_path": "/shared/bioquimica.md",
   "recomendacion": [
-    { "tipo": "multiple_choice_single_answer", "cantidad": 4, "razon": "Contenido rico en conceptos con respuestas precisas, ideal para opción múltiple de respuesta única." },
-    { "tipo": "matching", "cantidad": 2, "razon": "Las clasificaciones de moléculas y procesos se prestan al emparejamiento de conceptos." },
-    { "tipo": "multiple_choice_multiple_answers", "cantidad": 2, "razon": "Temas con varias características correctas simultáneas elevan la dificultad a nivel intermedio." }
+    { "tipo": "multiple_choice_single_answer", "cantidad": 4 },
+    { "tipo": "matching", "cantidad": 2 },
+    { "tipo": "multiple_choice_multiple_answers", "cantidad": 2 }
   ],
-  "resumen": "Para tu evaluación de bioquímica en nivel intermedio recomiendo: 4 preguntas de opción múltiple (una respuesta), 2 de emparejamiento y 2 de opción múltiple (varias respuestas). Esta combinación cubre recordación, relaciones entre conceptos y aplicación analítica.",
-  "tipos_api": ["multiple_choice_single_answer", "matching", "multiple_choice_multiple_answers"]
+  "resumen": "Cubre recordación de conceptos, relaciones entre ideas y aplicación analítica del contenido."
 }
 ```
