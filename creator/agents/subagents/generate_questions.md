@@ -367,21 +367,12 @@ Reglas de interpretación:
 
 ## 7. Formato de salida hacia el agente principal
 
-**Éxito total:**
+**Éxito total:** el agente principal solo necesita el conteo creado. **No** incluyas `total_preguntas`, `fallidas`, `questionnaire_id`, `distribucion` ni `resumen` en este caso (no se usan; ahorran tokens). Mantén `warnings` solo si hubo alguna sustitución de tipo; si no, envía `[]`.
 
 ```json
 {
   "status": "ok",
-  "questionnaire_id": 482,
-  "total_preguntas": 8,
   "creadas": 8,
-  "fallidas": 0,
-  "distribucion": [
-    { "tipo": "multiple_choice_single_answer", "cantidad": 4 },
-    { "tipo": "matching", "cantidad": 2 },
-    { "tipo": "multiple_choice_multiple_answers", "cantidad": 2 }
-  ],
-  "resumen": "Se crearon 8 preguntas en el questionnaire 482.",
   "warnings": []
 }
 ```
@@ -503,16 +494,7 @@ Códigos de error posibles: `missing_content`, `conflicting_content`, `invalid_d
 ```json
 {
   "status": "ok",
-  "questionnaire_id": 482,
-  "total_preguntas": 8,
   "creadas": 8,
-  "fallidas": 0,
-  "distribucion": [
-    { "tipo": "multiple_choice_single_answer", "cantidad": 4 },
-    { "tipo": "matching", "cantidad": 2 },
-    { "tipo": "multiple_choice_multiple_answers", "cantidad": 2 }
-  ],
-  "resumen": "Se crearon 8 preguntas en el questionnaire 482.",
   "warnings": []
 }
 ```
