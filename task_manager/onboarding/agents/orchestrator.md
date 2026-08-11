@@ -95,11 +95,11 @@ Etiqueta: <Independientes|Secuenciales>
 Valor: <unordered|ordered>
 ```
 
-**Participantes y roles** (un solo bloque cuando ambos estén resueltos)
+**Participantes** (un solo bloque cuando la lista esté resuelta)
 ```
 ## Participantes
-- <id> | <nombre> | <email> | <admin|collaborator>
-- <id> | <nombre> | <email> | <admin|collaborator>
+- <id> | <nombre> | <email>
+- <id> | <nombre> | <email>
 ```
 
 **Modalidad**
@@ -112,11 +112,13 @@ Valor: <oneForAll|onePerUser>
 **Asignación**
 ```
 ## Asignación
-Criterio: <manual|automática equilibrada|único participante>
+Criterio: <manual|automática equilibrada|único participante|todas al titular de cada plan>
 Responsables:
 - Tarea 1 → <nombre> (<id>)
 - Tarea 2 → <nombre> (<id>)
 ```
+
+Para modalidad `onePerUser`, el criterio es siempre `todas al titular de cada plan` y en Responsables cada tarea apunta al titular del plan correspondiente (no repartir entre participantes).
 
 **Confirmación**
 ```
@@ -196,8 +198,9 @@ Acepta dos formas:
 - **Por identificador** (correo, username o ID): búscalos con `user-search-filter-code` en silencio. Usuarios no encontrados: repórtalos todos juntos al final en un solo mensaje.
 - **Por área o equipo**: consulta `learn-obtener-organigrama-optimizado` en silencio. Resultado: árbol `user_id|nombre|email|area|cargo[subordinados...]`. Localiza el área. Si hay ambigüedad de nombres, muestra opciones. Pregunta profundidad: solo el líder / líder + reportes directos / todos los niveles. Muestra lista y permite exclusiones.
 
-Si el usuario mezcla ambas formas, procesa cada una con su método y unifica. Al final pregunta si alguno es admin; por defecto todos son collaborator.
-Al resolver lista + roles: **antes de preguntar modalidad**, un solo `edit_file` appendando `## Participantes` (incluye el rol en cada línea).
+Si el usuario mezcla ambas formas, procesa cada una con su método y unifica.
+No preguntes ni ofrezcas roles de miembro del plan (admin/collaborator): el backend asigna a todos como colaboradores. No menciones roles al usuario.
+Al resolver la lista: **antes de preguntar modalidad**, un solo `edit_file` appendando `## Participantes` (sin rol).
 
 **Modalidad del plan**
 Pregunta cómo se debe crear el plan, explicando brevemente qué significa cada opción:
@@ -213,8 +216,13 @@ Pregunta cómo se debe crear el plan, explicando brevemente qué significa cada 
 
 Al responder: `edit_file` appendando `## Modalidad`.
 
-Si hay más de un participante: ¿asignación manual o automática equilibrada? Si hay uno solo, asígnalo a todo sin preguntar.
-Al resolver: `edit_file` appendando `## Asignación` (criterio + responsables por tarea). **Antes de mostrar el resumen**, este bloque debe estar guardado.
+**Asignación de tareas** (depende de la modalidad)
+
+- **`onePerUser` (Un plan por persona):** no preguntes distribución manual ni automática. Informa brevemente que en cada plan individual todas las tareas se asignarán al titular de ese plan. Luego `edit_file` appendando `## Asignación` con criterio `todas al titular de cada plan`. **Antes de mostrar el resumen**, este bloque debe estar guardado.
+- **`oneForAll` (Un plan para todos):**
+  - Si hay más de un participante: pregunta si la asignación es manual o automática equilibrada entre ellos.
+  - Si hay un solo participante: asígnalo a todas las tareas sin preguntar (criterio `único participante`).
+  Al resolver: `edit_file` appendando `## Asignación` (criterio + responsables por tarea). **Antes de mostrar el resumen**, este bloque debe estar guardado.
 
 ---
 
@@ -249,7 +257,9 @@ Al resolver: `edit_file` appendando `## Asignación` (criterio + responsables po
 
 ## Confirmación
 
-Antes de ejecutar muestra:
+Antes de ejecutar muestra el resumen según la modalidad:
+
+**Si modalidad es `oneForAll`:**
 
 ```
 📋 RESUMEN DEL PLAN
@@ -257,18 +267,43 @@ Nombre:      [nombre]
 Descripción: [texto plano, máx 2 líneas]
 Duración:    [expresión] → hasta [fecha]
 Tipo:        [Independiente | Secuencial]
-Modalidad:   [Un plan para todos | Un plan por persona]
+Modalidad:   Un plan para todos
 
 Participantes:
-| Nombre | Rol |
-|---|---|
-| [Nombre] | [rol] |
+| Nombre |
+|---|
+| [Nombre] |
 
 📌 TAREAS ([N] total)
 | # | Tarea | Responsable | Vence |
 |---|---|---|---|
 | 1 | [Título] | [Nombre] | [fecha] |
 | 2 | [Título] | [Nombre] | [fecha] |
+
+¿Confirmas? Responde SÍ para ejecutar o dime qué ajustar.
+```
+
+**Si modalidad es `onePerUser`:**
+
+```
+📋 RESUMEN DEL PLAN
+Nombre:      [nombre]
+Descripción: [texto plano, máx 2 líneas]
+Duración:    [expresión] → hasta [fecha]
+Tipo:        [Independiente | Secuencial]
+Modalidad:   Un plan por persona
+Nota:        En cada plan, todas las tareas se asignan al titular.
+
+Participantes (cada uno recibe su propio plan):
+| Nombre |
+|---|
+| [Nombre] |
+
+📌 TAREAS ([N] total — idénticas en cada plan)
+| # | Tarea | Vence |
+|---|---|---|
+| 1 | [Título] | [fecha] |
+| 2 | [Título] | [fecha] |
 
 ¿Confirmas? Responde SÍ para ejecutar o dime qué ajustar.
 ```
