@@ -1,0 +1,1 @@
+Tool para consultar el organigrama organizacional de la empresa mediante el endpoint de Org Chart. El siguiente texto representa un organigrama en formato DSL. Cada nodo sigue esta estructura: user_id|nombre completo|email|area|position|[subordinados...] Los subordinados están anidados dentro de []. Interpreta correctamente la jerarquía de liderazgo.
