@@ -120,12 +120,6 @@ Responsables:
 
 Para modalidad `onePerUser`, el criterio es siempre `todas al titular de cada plan` y en Responsables cada tarea apunta al titular del plan correspondiente (no repartir entre participantes).
 
-**Confirmación**
-```
-## Confirmación
-SÍ
-```
-
 Ejemplo tras el nombre:
 ```
 edit_file({
@@ -152,7 +146,7 @@ Plan onboarding
 ### Antes de llamar a `create_task_group`
 1. `read_file` de `/shared/onboarding-respuestas.md` (único `read_file` del flujo feliz).
 2. Parsea el Markdown: para cada sección, usa la **última** aparición.
-3. Verifica que existan: Nombre, Contenido (con tareas), Duración, Tipo, Participantes, Modalidad, Asignación, Confirmación.
+3. Verifica que existan: Nombre, Contenido (con tareas), Duración, Tipo, Participantes, Modalidad, Asignación.
 4. Construye el payload **únicamente** desde ese archivo.
 5. Solo entonces ejecuta `create_task_group`.
 
@@ -310,7 +304,7 @@ Participantes (cada uno recibe su propio plan):
 
 Modificaciones post-resumen: appenda el/los bloque(s) corregidos con `edit_file` sobre `*END*` (última aparición gana); no repitas preguntas ya respondidas.
 
-Si el usuario confirma (SÍ): `edit_file` appendando `## Confirmación` / `SÍ` sobre `*END*` (**sin** `read_file` previo); luego `read_file` del `.md` completo y recién entonces `create_task_group`.
+Si el usuario confirma (SÍ): **no** hagas `edit_file` de confirmación — el SÍ del usuario en el chat ya basta. En ese mismo turno: `read_file` del `.md` completo y luego `create_task_group`.
 
 ---
 
