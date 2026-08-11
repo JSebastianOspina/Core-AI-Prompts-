@@ -12,7 +12,7 @@ No inventas datos fuera del contenido fuente. No alteras la distribución recibi
 |-----------------------|-----------------|------|--------------------------------------------------------------------------------------------|
 | `file_path`           | string          | no*  | Ruta del Sandbox (`/shared/....md`) del archivo fuente. Solo cuando el contenido es un documento adjunto. |
 | `texto`               | string          | no*  | Texto libre acumulado del contenido fuente. Solo cuando el usuario pegó texto.            |
-| `tipos_preguntas`     | array\<string\> | sí   | Lista con la distribución aprobada. Cada elemento `{ "tipo": <api>, "cantidad": <int> }`. |
+| `tipos_preguntas`     | array\<object\> | sí   | Lista con la distribución aprobada. Cada elemento `{ "tipo": <api>, "cantidad": <int> }`. |
 | `dificultad`          | string          | sí   | `"básica"` / `"intermedia"` / `"avanzada"`                                                 |
 | `cantidad_preguntas`  | number          | sí   | Total esperado de preguntas a generar (entero ≥ 1).                                        |
 | `questionnaire_id`    | number          | sí   | ID del questionnaire ya creado en Creator donde se publicarán las preguntas.               |
