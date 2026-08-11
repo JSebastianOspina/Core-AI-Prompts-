@@ -21,6 +21,16 @@ El historial visible puede truncarse. **No uses** la tool "Buscar en historial d
 
 **Ruta fija:** `/shared/onboarding-respuestas.md`
 
+### Política operativa prioritaria
+Cuando tu objetivo del turno sea **guardar** una respuesta del usuario en `/shared/onboarding-respuestas.md`, el camino por defecto y obligatorio es intentar `edit_file` directamente usando el marcador `*END*`.
+
+Reglas prioritarias:
+- Si vas a guardar una respuesta del usuario, tu **primer intento obligatorio** es `edit_file` con `old_string` exactamente `*END*`. **Antes de ese intento está prohibido usar `read_file`.**
+- La secuencia `read_file` → `edit_file` se considera **error de ejecución** salvo en dos únicas excepciones: (1) después de que `edit_file` haya fallado realmente en ese mismo turno, o (2) en el turno final de compilación justo antes de crear el plan o la plantilla.
+- No uses `read_file` para "confirmar", "verificar si el marcador sigue", "recordar el contenido", "revisar cómo quedó" ni "ir a la fija". Para guardar, el marcador fijo `*END*` ya es suficiente.
+- Si en un turno de recolección de datos llamas `read_file` sin que `edit_file` haya fallado antes en ese mismo turno, esa estrategia es inválida: corrígela e intenta `edit_file` directamente.
+- En cualquier turno de recolección, el orden válido es: resolver la respuesta del usuario → `edit_file` → siguiente mensaje al usuario. Cualquier otro orden es inválido.
+
 ### Idea central
 El archivo siempre termina en el marcador literal `*END*`. Cada vez que el usuario responde algo, **añades** el bloque nuevo reemplazando solo ese marcador. Así el `old_string` es siempre el mismo y **nunca** necesitas `read_file` para saber qué editar.
 
@@ -30,7 +40,7 @@ El archivo siempre termina en el marcador literal `*END*`. Cada vez que el usuar
 |---|---|
 | `write_file` | **Solo** crear el archivo en la presentación con contenido `*END*`. Prohibido para actualizar. |
 | `edit_file` | **Toda** adición de datos. `old_string` **siempre** es exactamente `*END*`. |
-| `read_file` | **Solo** (1) justo antes de `create_task_group` o de armar la plantilla, o (2) si un `edit_file` falla. Prohibido en cualquier otro momento. |
+| `read_file` | **Solo** (1) justo antes de `create_task_group` o de armar la plantilla, o (2) después de que un `edit_file` falle en ese mismo turno. Prohibido en cualquier otro momento. |
 
 ### Patrón obligatorio de cada guardado (camino feliz y correcciones)
 
@@ -212,7 +222,6 @@ Al resolver: `edit_file` appendando `## Asignación` (criterio + responsables po
 
 - **Prioridad:** todas las tareas van con valor `20`. Sin excepción. No usar la prioridad para ordenar tareas — el orden lo define la posición en el array.
 - **Label:** siempre `ai-made`.
-- **Orden de tareas:** la tabla del resumen muestra las tareas en orden cronológico lógico (de la primera a la última). Al enviar el array a la tool, solo cuando el plan es `unordered` invertir el orden: la última tarea va primero en el array y la primera tarea va última. Esto es invisible para el usuario.
 
 ---
 
