@@ -1,14 +1,15 @@
 import json
+from typing import Literal
+
 import requests
 
 
 def tool(
-    allocation_type: str, payload: dict, metadata: dict | None = None
+    allocation_type: Literal["oneForAll", "onePerUser"],
+    payload: dict,
+    metadata: dict | None = None,
 ) -> str:
-    """Crea un plan en Task Manager administrando dinámicamente la distribución
-
-    por usuario, forzando prioridades a 20 y manteniendo la estructura original de tareas.
-    """
+    """Crea uno o varios planes en Task Manager según la modalidad indicada."""
 
     meta = metadata or {}
     token = meta.get("token")
@@ -19,7 +20,6 @@ def tool(
             ensure_ascii=False,
         )
 
-    # ENRUTAMIENTO: Selección de URL según el tipo de distribución
     if allocation_type == "onePerUser":
         url = "https://pub-apps.ubitslearning.com/task-manager/api/v1/task-groups/per-user"
     else:
@@ -27,22 +27,19 @@ def tool(
             "https://pub-apps.ubitslearning.com/task-manager/api/v1/task-groups"
         )
 
-    # REGLA DE NEGOCIO OBLIGATORIA: Forzar la etiqueta requerida del sistema
     payload["label"] = "ai-made"
 
-    # VALIDACIÓN DEL TYPE: Asegurar un comportamiento por defecto válido
     plan_type = payload.get("type")
-    if plan_type not in ["ordered", "unordered"]:
+    if plan_type not in ("ordered", "unordered"):
         payload["type"] = "unordered"
 
-    # REGLA DE NEGOCIO CRÍTICA: Forzar prioridad de tareas en 20 para evitar
-    # que planes extensos sean rechazados por restricciones de volumen del backend.
-    if "tasks" in payload and isinstance(payload["tasks"], list):
-        total_tasks = len(payload["tasks"])
-        for i in range(total_tasks):
-            task = payload["tasks"][i]
+    tasks = payload.get("tasks")
+    if isinstance(tasks, list):
+        for task in tasks:
             if isinstance(task, dict):
                 task["priority"] = 20
+                if task.get("assigneeId") is not None:
+                    task["assigneeRole"] = "collaborator"
 
     try:
         response = requests.post(

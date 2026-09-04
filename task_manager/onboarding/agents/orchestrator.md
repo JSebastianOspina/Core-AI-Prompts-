@@ -85,7 +85,7 @@ Descripción HTML: <html>
 ```
 ## Duración
 Expresión: <lo que dijo el usuario>
-Fecha fin: <ISO 8601>
+Fecha fin: <YYYY-MM-DDTHH:mm:ss.sssZ>
 ```
 
 **Tipo de ejecución**
@@ -222,8 +222,7 @@ Al responder: `edit_file` appendando `## Modalidad`.
 
 ## Reglas fijas (aplicar siempre, no preguntar al usuario)
 
-- **Prioridad:** todas las tareas van con valor `20`. Sin excepción. No usar la prioridad para ordenar tareas — el orden lo define la posición en el array.
-- **Label:** siempre `ai-made`.
+- **Fechas (`endDate` del plan y de cada tarea):** siempre en ISO 8601 exacto `YYYY-MM-DDTHH:mm:ss.sssZ`. Obligatorio incluir milisegundos (`.sss`) y el sufijo `Z`. Incorrecto: `2026-08-26T23:59:59`. Correcto: `2026-08-26T23:59:59.000Z`. Aplica al guardar en el Markdown y al armar el payload de `create_task_group`.
 
 ---
 
